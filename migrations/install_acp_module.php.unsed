@@ -1,0 +1,45 @@
+<?php
+/**
+ *
+ * AnubisBB. An extension for the phpBB Forum Software package.
+ *
+ * @copyright (c) 2025, NeoDev
+ * @license GNU General Public License, version 2 (GPL-2.0)
+ *
+ */
+
+namespace neodev\anubisbb\migrations;
+
+class install_acp_module extends \phpbb\db\migration\migration
+{
+	public function effectively_installed()
+	{
+		return isset($this->config['neodev_anubisbb_goodbye']);
+	}
+
+	public static function depends_on()
+	{
+		return ['\phpbb\db\migration\data\v320\v320'];
+	}
+
+	public function update_data()
+	{
+		return [
+			['config.add', ['neodev_anubisbb_goodbye', 0]],
+
+			['module.add', [
+				'acp',
+				'ACP_CAT_DOT_MODS',
+				'ACP_ANUBISBB_TITLE'
+			]],
+			['module.add', [
+				'acp',
+				'ACP_ANUBISBB_TITLE',
+				[
+					'module_basename'	=> '\neodev\anubisbb\acp\main_module',
+					'modes'				=> ['settings'],
+				],
+			]],
+		];
+	}
+}

@@ -1,0 +1,8 @@
+{% include "@neodev_anubisbb/header.html" %}
+	<div class="centered-div">
+		<img id="image" alt="Sad Anubis" style="width:100%;max-width:256px;" src="{{ static_path }}img/reject.webp">
+		<p>{{ error_message }}</p>
+		<button >Try again</button>
+		<p><a href="{{ retry_link }}">Try again</a> or if you believe you should not be blocked, please <a href="{{ contact }}">contact the administrator</a></p>
+	</div>
+{% include "@neodev_anubisbb/footer.html" %}

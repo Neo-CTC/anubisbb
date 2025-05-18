@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>{{ title }}</title>
+	<link rel="stylesheet" href="{{ static_path }}xess.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex,nofollow">
+	<meta charset="UTF-8">
+	<style>
+		body,
+		html {
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.centered-div {
+			text-align: center;
+		}
+
+		#status {
+			font-variant-numeric: tabular-nums;
+		}
+
+		#progress {
+			display: none;
+			width: min(20rem, 90%);
+			height: 2rem;
+			border-radius: 1rem;
+			overflow: hidden;
+			margin: 1rem 0 2rem;
+			outline-color: #b16286;
+			outline-offset: 2px;
+			outline-style: solid;
+			outline-width: 4px;
+		}
+
+		.bar-inner {
+			background-color: #b16286;
+			height: 100%;
+			width: 0;
+			transition: width 0.25s ease-in;
+		}
+	</style>
+	<script id="anubis_version" type="application/json">"{{ version }}"</script>
+	<script id="static_prefix" type="application/json">"{{ static_path }}"</script>
+	<script id="route_prefix" type="application/json">"{{ route_path }}"</script>
+	{% if challenge %}
+		<script id="challenge" type="application/json">{
+		"challenge": "{{ challenge }}",
+		"rules": {
+			"difficulty": "{{ difficulty }}",
+			"report_as": "{{ difficulty }}",
+			"algorithm": "fast"
+		}
+	}</script>
+	{% endif %}
+</head>
+<body id="top">
+<main>
+	<h1 id="title" class="centered-div">{{ title }}</h1>

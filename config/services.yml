@@ -1,0 +1,32 @@
+services:
+    neodev.anubisbb.controller.api:
+        class: neodev\anubisbb\controller\api_controller
+        arguments:
+            - '@config'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@path_helper'
+            - '@user'
+
+    neodev.anubisbb.controller.acp:
+        class: neodev\anubisbb\controller\acp_controller
+        arguments:
+            - '@config'
+            - '@language'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+
+    neodev.anubisbb.listener:
+        class: neodev\anubisbb\event\intercept
+        arguments:
+            - '@user'
+            - '@template'
+            - '@request'
+            - '@config'
+            - '@controller.helper'
+            - '@path_helper'
+        tags:
+            - { name: event.listener }

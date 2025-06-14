@@ -14,13 +14,16 @@ If you want to try this out, connect to [anubis.techaro.lol](https://anubis.tech
 
 ## phpBB Port
 
-After the many reports of forum admins suffering from 1000's of bots hitting their forums, a solution was needed. Thus, Anubis was adapted for use as an extension for phpBB in the hope of reducing bot attacks. For the most part this extension should behave in much the same way as it's standalone counterpart. 
+After the many reports of forums suffering from 1000's of bots hitting their forums, a solution was needed. Thus, Anubis was adapted for use as an extension for phpBB in the hope of reducing bot attacks. For the most part this extension should behave in much the same way as it's standalone counterpart. 
 
 ## Installation
 
-Download the extention to the ext folder and unzip it there. The file will unpack to ext/neodev/anubisbb
+Download the extention to the ext folder and unzip it there. The file will unpack inside the ext folder to neodev/anubisbb.
 
-Go to "ACP" > "Customise" > "Extensions" and enable the "AnubisBB" extension.
+Go to "Administration Control Panel" > "Customise" > "Extensions" and enable the "AnubisBB" extension.
+
+Some webservers may also need a new mimetype for `.mjs` files.  
+For Apache: `AddType text/javascript .mjs`
 
 ## License
 

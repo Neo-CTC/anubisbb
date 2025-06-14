@@ -3,19 +3,19 @@
     "type": "phpbb-extension",
     "description": "Port of Anubis WAF for phpBB",
     "homepage": "",
-    "version": "0.1.0-dev",
-    "time": "2025-05-08",
+    "version": "0.2.0-dev",
+    "time": "2025-06-14",
     "license": "GPL-2.0-only",
     "authors": [
         {
             "name": "NeoDev",
             "email": "neo@crosstimecafe.com",
-            "homepage": "",
+            "homepage": "https://www.crosstimecafe.com/viewforum.php?f=54",
             "role": ""
         }
     ],
     "require": {
-        "php": ">=7.1.3",
+        "php": ">=7.2.0",
         "composer/installers": "~1.0"
     },
     "extra": {

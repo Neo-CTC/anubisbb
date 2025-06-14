@@ -15,8 +15,8 @@ use phpbb\config\config;
 use phpbb\controller\helper;
 use phpbb\path_helper;
 use phpbb\request\request;
-use phpbb\user;
 use phpbb\template\template;
+use phpbb\user;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -52,7 +52,7 @@ class intercept implements EventSubscriberInterface
 		$this->config      = $config;
 		$this->helper      = $helper;
 		$this->path_helper = $path_helper;
-		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->anubis      = new anubis_core($this->config, $this->request, $this->user);
 	}
 
 	public function anubis_check()
@@ -60,7 +60,7 @@ class intercept implements EventSubscriberInterface
 		// TODO: Deny bad bots
 
 		// Good cookie, stop here
-		if($this->anubis->validate_cookie())
+		if ($this->anubis->validate_cookie())
 		{
 			return;
 		}
@@ -124,32 +124,31 @@ class intercept implements EventSubscriberInterface
 		$this->template->assign_vars([
 			'static_path' => $this->path_helper->get_web_root_path() . 'ext/neodev/anubisbb/styles/all/theme/',
 			'route_path'  => $this->helper->route('neodev_anubisbb_pass_challenge'),
-			'version' => $this->anubis->version,
+			'version'     => $this->anubis->version,
 		]);
 
 		// Fetch the challenge hash
 		$challenge = $this->anubis->make_challenge();
-		if(!$challenge)
+		if (!$challenge)
 		{
 			// Problem making the challenge?
 			// TODO: log the error to phpBB
 			$this->template->assign_vars([
-				'title' => 'Oh noes!',
+				'title'         => 'Oh noes!',
 				'error_message' => $this->anubis->error,
-				'contact' => $this->path_helper->get_web_root_path() . 'memberlist.php?mode=contactadmin',
-				'retry_link' => build_url(), // Basically a link to the current url
+				'contact'       => $this->path_helper->get_web_root_path() . 'memberlist.php?mode=contactadmin',
+				'retry_link'    => build_url(), // Basically a link to the current url
 				// TODO: test the retry link
 			]);
 			$this->template->set_filenames(['body' => '@neodev_anubisbb/failure_challenge.html']);
-
 		}
 		else
 		{
 			// Display challenge page
 			$this->template->assign_vars([
-				'title' => 'Making sure you&#39;re not a bot!',
+				'title'      => 'Making sure you&#39;re not a bot!',
 				'difficulty' => $this->config['anubisbb_difficulty'],
-				'challenge' => $challenge,
+				'challenge'  => $challenge,
 			]);
 			$this->template->set_filenames(['body' => '@neodev_anubisbb/make_challenge.html']);
 		}

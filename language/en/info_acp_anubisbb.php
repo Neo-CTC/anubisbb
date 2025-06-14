@@ -4,7 +4,7 @@
  * AnubisBB. An extension for the phpBB Forum Software package.
  *
  * @copyright (c) 2025, NeoDev
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
@@ -35,8 +35,8 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, [
-	'ACP_ANUBISBB_TITLE'	=> 'AnubisBB Module',
-	'ACP_ANUBISBB'			=> 'AnubisBB Settings',
+	'ACP_ANUBISBB_TITLE' => 'AnubisBB Module',
+	'ACP_ANUBISBB'       => 'AnubisBB Settings',
 
-	'LOG_ACP_ANUBISBB_SETTINGS'		=> '<strong>AnubisBB settings updated</strong>',
+	'LOG_ACP_ANUBISBB_SETTINGS' => '<strong>AnubisBB settings updated</strong>',
 ]);

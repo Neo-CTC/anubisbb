@@ -4,7 +4,7 @@
  * AnubisBB. An extension for the phpBB Forum Software package.
  *
  * @copyright (c) 2025, NeoDev
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
@@ -36,15 +36,15 @@ if (empty($lang) || !is_array($lang))
 
 $lang = array_merge($lang, [
 
-	'ANUBISBB_HELLO'		=> 'Hello %s!',
-	'ANUBISBB_GOODBYE'		=> 'Goodbye %s!',
+	'ANUBISBB_HELLO'   => 'Hello %s!',
+	'ANUBISBB_GOODBYE' => 'Goodbye %s!',
 
-	'ANUBISBB_EVENT'		=> ' :: Anubisbb Event :: ',
+	'ANUBISBB_EVENT' => ' :: Anubisbb Event :: ',
 
-	'ACP_ANUBISBB_GOODBYE'			=> 'Should say goodbye?',
-	'ACP_ANUBISBB_SETTING_SAVED'	=> 'Settings have been saved successfully!',
+	'ACP_ANUBISBB_GOODBYE'       => 'Should say goodbye?',
+	'ACP_ANUBISBB_SETTING_SAVED' => 'Settings have been saved successfully!',
 
-	'ANUBISBB_PAGE'			=> 'Anubisbb Page',
-	'VIEWING_NEODEV_ANUBISBB'			=> 'Viewing AnubisBB page',
+	'ANUBISBB_PAGE'           => 'Anubisbb Page',
+	'VIEWING_NEODEV_ANUBISBB' => 'Viewing AnubisBB page',
 
 ]);

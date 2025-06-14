@@ -20,6 +20,7 @@ use phpbb\config\config;
 use phpbb\request\request;
 use phpbb\request\request_interface;
 use phpbb\user;
+use SodiumException;
 
 class anubis_core
 {
@@ -171,7 +172,7 @@ class anubis_core
 		}
 
 		// Run checks on cookie, remove cookie if any check fails
-		if($this->cookie_check())
+		if ($this->cookie_check())
 		{
 			return true;
 		}
@@ -185,7 +186,7 @@ class anubis_core
 	private function cookie_check()
 	{
 		// JSON Web Token
-		$jwt = $this->request->variable($this->cookie_name, '',true, request_interface::COOKIE);
+		$jwt = $this->request->variable($this->cookie_name, '', true, request_interface::COOKIE);
 
 		// Split the token into payload and signature
 		$token = explode('.', $jwt);
@@ -204,7 +205,7 @@ class anubis_core
 				return false;
 			}
 		}
-		catch (\SodiumException $e)
+		catch (SodiumException $e)
 		{
 			return false;
 		}
@@ -233,8 +234,7 @@ class anubis_core
 	 */
 	private function bake_cookie()
 	{
-
-		$time = time();
+		$time    = time();
 		$payload = json_encode([
 			"challenge" => $this->make_challenge(), // Challenge str from browser fingerprint
 			"exp"       => $time + $this->cookie_time, // Expiration, 1 week
@@ -254,7 +254,7 @@ class anubis_core
 		{
 			$sig = sodium_crypto_sign_detached($jwt, $this->secret_key);
 		}
-		catch (\SodiumException $e)
+		catch (SodiumException $e)
 		{
 			// Problem?
 			// TODO: log errors
@@ -272,7 +272,7 @@ class anubis_core
 	 */
 	private function remove_cookie()
 	{
-		$this->user->set_cookie('anubisbb','',1);
+		$this->user->set_cookie('anubisbb', '', 1);
 	}
 
 	/**

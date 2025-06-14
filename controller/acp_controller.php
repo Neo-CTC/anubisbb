@@ -4,11 +4,18 @@
  * AnubisBB. An extension for the phpBB Forum Software package.
  *
  * @copyright (c) 2025, NeoDev
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
 namespace neodev\anubisbb\controller;
+
+use phpbb\config\config;
+use phpbb\language\language;
+use phpbb\log\log;
+use phpbb\request\request;
+use phpbb\template\template;
+use phpbb\user;
 
 /**
  * AnubisBB ACP controller.
@@ -39,21 +46,21 @@ class acp_controller
 	/**
 	 * Constructor.
 	 *
-	 * @param \phpbb\config\config		$config		Config object
-	 * @param \phpbb\language\language	$language	Language object
-	 * @param \phpbb\log\log			$log		Log object
-	 * @param \phpbb\request\request	$request	Request object
-	 * @param \phpbb\template\template	$template	Template object
-	 * @param \phpbb\user				$user		User object
+	 * @param \phpbb\config\config     $config   Config object
+	 * @param \phpbb\language\language $language Language object
+	 * @param \phpbb\log\log           $log      Log object
+	 * @param \phpbb\request\request   $request  Request object
+	 * @param \phpbb\template\template $template Template object
+	 * @param \phpbb\user              $user     User object
 	 */
-	public function __construct(\phpbb\config\config $config, \phpbb\language\language $language, \phpbb\log\log $log, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user)
+	public function __construct(config $config, language $language, log $log, request $request, template $template, user $user)
 	{
-		$this->config	= $config;
-		$this->language	= $language;
-		$this->log		= $log;
-		$this->request	= $request;
-		$this->template	= $template;
-		$this->user		= $user;
+		$this->config   = $config;
+		$this->language = $language;
+		$this->log      = $log;
+		$this->request  = $request;
+		$this->template = $template;
+		$this->user     = $user;
 	}
 
 	/**
@@ -100,19 +107,20 @@ class acp_controller
 
 		// Set output variables for display in the template
 		$this->template->assign_vars([
-			'S_ERROR'		=> $s_errors,
-			'ERROR_MSG'		=> $s_errors ? implode('<br />', $errors) : '',
+			'S_ERROR'   => $s_errors,
+			'ERROR_MSG' => $s_errors ? implode('<br />', $errors) : '',
 
-			'U_ACTION'		=> $this->u_action,
+			'U_ACTION' => $this->u_action,
 
-			'NEODEV_ANUBISBB_GOODBYE'	=> (bool) $this->config['neodev_anubisbb_goodbye'],
+			'NEODEV_ANUBISBB_GOODBYE' => (bool) $this->config['neodev_anubisbb_goodbye'],
 		]);
 	}
 
 	/**
 	 * Set custom form action.
 	 *
-	 * @param string	$u_action	Custom form action
+	 * @param string $u_action Custom form action
+	 *
 	 * @return void
 	 */
 	public function set_page_url($u_action)

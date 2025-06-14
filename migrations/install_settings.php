@@ -4,13 +4,15 @@
  * AnubisBB. An extension for the phpBB Forum Software package.
  *
  * @copyright (c) 2025, NeoDev
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
 namespace neodev\anubisbb\migrations;
 
-class install_settings extends \phpbb\db\migration\migration
+use phpbb\db\migration\migration;
+
+class install_settings extends migration
 {
 	public function effectively_installed()
 	{

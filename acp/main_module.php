@@ -4,7 +4,7 @@
  * AnubisBB. An extension for the phpBB Forum Software package.
  *
  * @copyright (c) 2025, NeoDev
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
@@ -24,6 +24,7 @@ class main_module
 	 *
 	 * @param int    $id   The module ID
 	 * @param string $mode The module mode (for example: manage or settings)
+	 *
 	 * @throws \Exception
 	 */
 	public function main($id, $mode)

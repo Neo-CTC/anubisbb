@@ -33,9 +33,10 @@ class api_controller
 	/** @var \phpbb\template\template */
 	protected $template;
 	/**
-	 * @var int
+	 * @var \neodev\anubisbb\core\anubis_core
 	 */
-	private $cookie_time;
+	private $anubis;
+
 	/**
 	 * @var string
 	 */
@@ -69,8 +70,8 @@ class api_controller
 		$this->user     = $user;
 		$this->web_root_path     = $path_helper->get_web_root_path();
 		$this->redirect = '';
-		// TODO: cookie time settings
-		$this->cookie_time = 60;
+
+		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 	}
 
 	/**
@@ -93,28 +94,17 @@ class api_controller
 		$this->redirect = $redirect;
 		// TODO: catch redirect loops
 
-		$anubis = new anubis_core($this->config, $this->request, $this->user);
-		$this->template->assign_var('version', $anubis->version);
 
-		if (!$anubis->pass_challenge())
+		$this->template->assign_var('version', $this->anubis->version);
+
+		if ($this->anubis->pass_challenge())
 		{
-			// Didn't pass, no cookie for you!!
-			return $this->build_error_page($anubis->error);
+			// TODO: test redirects, make sure we can't go offsite
+			redirect($redirect);
 		}
 		else
 		{
-			// Passed! Grab yourself a cookie.
-			$cookie = $anubis->grab_cookie();
-			if (!$cookie)
-			{
-				return $this->build_error_page("No cookie?");
-			}
-
-			// TODO: grab cookie time setting
-			$this->user->set_cookie('anubisbb', $cookie, time() + $this->cookie_time);
-
-			// TODO: test redirects, make sure we can't go offsite
-			redirect($redirect);
+			return $this->build_error_page($this->anubis->error);
 		}
 	}
 
@@ -147,16 +137,5 @@ class api_controller
 			'static_path'  => $this->web_root_path . 'ext/neodev/anubisbb/styles/all/theme/',
 		]);
 		return $this->helper->render('@neodev_anubisbb/benchmark.html');
-	}
-
-	public function test()
-	{
-		global $phpbb_container;
-		/** @var \phpbb\captcha\plugins\ $captcha */
-		$captcha = $phpbb_container->get('captcha.factory')->get_instance($this->config['captcha_plugin']);
-		$captcha->init(CONFIRM_REG);
-		$captcha->reset();
-		$this->template->assign_var('CAPTCHA_TEMPLATE', $captcha->get_template());
-		return $this->helper->render('@neodev_anubisbb/test.html');
 	}
 }

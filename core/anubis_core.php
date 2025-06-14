@@ -33,8 +33,6 @@ class anubis_core
 	private $difficulty;
 	private $secret_key;
 
-	private $cookie;
-
 	public function __construct(config $config, request $request, user $user)
 	{
 		$this->error   = '';
@@ -44,18 +42,19 @@ class anubis_core
 		$this->user    = $user;
 
 		$this->difficulty = $config['anubisbb_difficulty'];
-		// $this->difficulty = 5;
 		$this->secret_key = hex2bin($config['anubisbb_sk']);
-		$this->cookie     = '';
-		$this->cookie_time = 60;
+
+		$this->cookie_time = (int) $config['anubisbb_ctime'];
 		$this->cookie_name = $config['cookie_name'] . '_anubisbb';
 
 		if (strlen($this->secret_key) != SODIUM_CRYPTO_SIGN_SECRETKEYBYTES)
 		{
 			// Generate secret+public keys
 			$kp = sodium_crypto_sign_keypair();
+
 			// Save only the secret key
 			$sk = sodium_crypto_sign_secretkey($kp);
+
 			$config->set('anubisbb_sk', bin2hex($sk));
 			$this->secret_key = $sk;
 		}
@@ -71,6 +70,7 @@ class anubis_core
 	 */
 	public function make_challenge()
 	{
+		// TODO: Chrome is weird about accept language,
 		$lang = $this->request->server('HTTP_ACCEPT_LANGUAGE', '');
 		if (!$lang)
 		{
@@ -119,25 +119,26 @@ class anubis_core
 	 *
 	 * @return bool
 	 */
-	public function pass_challenge($bake_cookie = true): bool
+	public function pass_challenge(): bool
 	{
 		$response = $this->request->variable('response', '');
 		if (!$response)
 		{
-			$this->error ?: $this->error = "Invalid request";
+			$this->error = "Invalid request";
 			return false;
 		}
 
 		$nonce = $this->request->variable('nonce', 0);
 		if (!$nonce)
 		{
-			$this->error ?: $this->error = "Invalid request";
+			$this->error = "Invalid request";
 			return false;
 		}
 
 		$challenge = $this->make_challenge();
 		if (!$challenge)
 		{
+			// The make challenge function should have set its own error message
 			return false;
 		}
 
@@ -157,39 +158,59 @@ class anubis_core
 			return false;
 		}
 
-		if ($bake_cookie)
-		{
-			$this->bake_cookie($challenge, $response, $nonce);
-		}
-
+		$this->bake_cookie();
 		return true;
 	}
 
 	public function validate_cookie()
 	{
+		// Can't validate a cookie that's not there
+		if (!$this->request->is_set($this->cookie_name, request_interface::COOKIE))
+		{
+			return false;
+		}
+
+		// Run checks on cookie, remove cookie if any check fails
+		if($this->cookie_check())
+		{
+			return true;
+		}
+		else
+		{
+			$this->remove_cookie();
+			return false;
+		}
+	}
+
+	private function cookie_check()
+	{
+		// JSON Web Token
 		$jwt = $this->request->variable($this->cookie_name, '',true, request_interface::COOKIE);
 
-		// Split the token into header, payload, signature
-		$hps = explode('.', $jwt);
-
+		// Split the token into payload and signature
+		$token = explode('.', $jwt);
 
 		// Decode the signature back to bytes
-		$sig = $this->b64_decode_url($hps[2]);
-
-		// Rebuild the signed string
-		$string = $hps[0] . '.' . $hps[1];
+		$sig = $this->b64_decode_url($token[1]);
 
 		// Grab the public key from the secret key
 		$public_key = substr($this->secret_key, SODIUM_CRYPTO_SIGN_SEEDBYTES);
 
 		// Validate the signed string
-		if (!sodium_crypto_sign_verify_detached($sig, $string, $public_key))
+		try
+		{
+			if (!sodium_crypto_sign_verify_detached($sig, $token[0], $public_key))
+			{
+				return false;
+			}
+		}
+		catch (\SodiumException $e)
 		{
 			return false;
 		}
 
 		// Unpack the cookie
-		$payload = json_decode($this->b64_decode_url($hps[1]), true);
+		$payload = json_decode($this->b64_decode_url($token[0]), true);
 
 		// Ignore stale cookies
 		if ($payload['exp'] < time() || time() < $payload['nbf'])
@@ -208,50 +229,50 @@ class anubis_core
 	}
 
 	/**
-	 * Grabs a pre baked cookie
-	 *
-	 * @return false|string
+	 * Create a Json Web Token (JWT)
 	 */
-	public function grab_cookie()
+	private function bake_cookie()
 	{
-		return ($this->cookie ?: false);
-	}
-
-	/**
-	 * Create a Json Web Token (JWT), must first pass the challenge
-	 *
-	 * @param $challenge
-	 * @param $response
-	 * @param $nonce
-	 *
-	 * @throws \SodiumException
-	 */
-	private function bake_cookie($challenge, $response, $nonce)
-	{
-		$header = json_encode([
-			"alg" => 'EdDSA',
-			'typ' => "JWT",
-		]);
 
 		$time = time();
-		// TODO: expiration setting
 		$payload = json_encode([
-			"challenge" => $challenge,
+			"challenge" => $this->make_challenge(), // Challenge str from browser fingerprint
 			"exp"       => $time + $this->cookie_time, // Expiration, 1 week
 			"iat"       => $time,      // Issued
 			"nbf"       => $time - 60, // Not before
-			"nonce"     => $nonce,
-			"response"  => $response,
+
+			// Unused
+			// "nonce"     => $nonce,
+			// "response"  => $response,
 		]);
 
-		// Combine parts 1 & 2 of the token
-		$jwt = $this->b64_encode_url($header) . "." . $this->b64_encode_url($payload);
+		// Encode the token
+		$jwt = $this->b64_encode_url($payload);
 
 		// Sign the token
-		$sig = sodium_crypto_sign_detached($jwt, $this->secret_key);
+		try
+		{
+			$sig = sodium_crypto_sign_detached($jwt, $this->secret_key);
+		}
+		catch (\SodiumException $e)
+		{
+			// Problem?
+			// TODO: log errors
+			$this->remove_cookie();
+			return;
+		}
 
 		// Append the signature to the token, and the cookie is baked
-		$this->cookie = $jwt . "." . $this->b64_encode_url($sig);
+		$jwt .= "." . $this->b64_encode_url($sig);
+		$this->user->set_cookie('anubisbb', $jwt, $time + $this->cookie_time);
+	}
+
+	/**
+	 * Remove expired/invalid cookies
+	 */
+	private function remove_cookie()
+	{
+		$this->user->set_cookie('anubisbb','',1);
 	}
 
 	/**
@@ -261,28 +282,11 @@ class anubis_core
 	 */
 	public function logout_cookie()
 	{
-		$header = json_encode([
-			"alg" => 'EdDSA',
-			'typ' => "JWT",
-		]);
-
-		$time = time();
-		// TODO: expiration setting
-		$payload = json_encode([
-			"challenge" => $this->make_challenge(),
-			"exp"       => $time + $this->cookie_time, // Expiration, 1 week
-			"iat"       => $time,      // Issued
-			"nbf"       => $time - 60, // Not before
-		]);
-
-		// Combine parts 1 & 2 of the token
-		$jwt = $this->b64_encode_url($header) . "." . $this->b64_encode_url($payload);
-
-		// Sign the token
-		$sig = sodium_crypto_sign_detached($jwt, $this->secret_key);
-
-		// Append the signature to the token, and the cookie is baked
-		return $jwt . "." . $this->b64_encode_url($sig);
+		// Double check user is logging out
+		if (defined('IN_LOGOUT'))
+		{
+			$this->bake_cookie();
+		}
 	}
 
 	/**

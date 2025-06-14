@@ -25,10 +25,9 @@ class install_settings extends \phpbb\db\migration\migration
 	public function update_data()
 	{
 		return [
-			['config.add',
-				['anubisbb_difficulty', 4],
-				['anubisbb_sk', ''],
-			],
+			['config.add', ['anubisbb_difficulty', 4]],
+			['config.add', ['anubisbb_sk', '']],
+			['config.add', ['anubisbb_ctime', 604800]], // One week
 		];
 	}
 }

@@ -4,6 +4,3 @@ neodev_anubisbb_pass_challenge:
 neodev_anubisbb_benchmark:
     path: /anubis/api/benchmark
     defaults: { _controller: neodev.anubisbb.controller.api:benchmark }
-neodev_test_page:
-    path: /anubis/test
-    defaults: { _controller: neodev.anubisbb.controller.api:test }

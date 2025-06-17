@@ -16,7 +16,7 @@ class install_settings extends migration
 {
 	public function effectively_installed()
 	{
-		return isset($this->config['anubisbb_difficulty']);
+		return isset($this->config['anubisbb_ctime']);
 	}
 
 	public static function depends_on()

@@ -45,7 +45,9 @@ class anubis_core
 		$this->difficulty = $config['anubisbb_difficulty'];
 		$this->secret_key = hex2bin($config['anubisbb_sk']);
 
-		$this->cookie_time = (int) $config['anubisbb_ctime'];
+		// Set cookie ttl with a safe minimum of 60 seconds
+		$this->cookie_time = ((int) $config['anubisbb_ctime'] > 60) ? (int) $config['anubisbb_ctime'] : 60;
+
 		$this->cookie_name = $config['cookie_name'] . '_anubisbb';
 
 		if (strlen($this->secret_key) != SODIUM_CRYPTO_SIGN_SECRETKEYBYTES)

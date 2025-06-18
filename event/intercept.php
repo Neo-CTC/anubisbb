@@ -177,7 +177,6 @@ class intercept implements EventSubscriberInterface
 			// The user is currently in the middle of logging out, and a new session will be created for them
 			// This lets us remember the logout and bake the user a new cookie once the new session is ready
 			define('IN_LOGOUT', true);
-			// TODO: we don't need this, check for IN_LOGIN
 		}
 	}
 

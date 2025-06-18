@@ -8,6 +8,7 @@ services:
             - '@template'
             - '@path_helper'
             - '@user'
+            - '@dbal.conn'
 
     neodev.anubisbb.controller.acp:
         class: neodev\anubisbb\controller\acp_controller
@@ -28,5 +29,6 @@ services:
             - '@config'
             - '@controller.helper'
             - '@path_helper'
+            - '@dbal.conn'
         tags:
             - { name: event.listener }

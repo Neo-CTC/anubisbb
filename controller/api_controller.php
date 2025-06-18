@@ -13,6 +13,7 @@ namespace neodev\anubisbb\controller;
 use neodev\anubisbb\core\anubis_core;
 use phpbb\config\config;
 use phpbb\controller\helper;
+use phpbb\db\driver\driver_interface;
 use phpbb\path_helper;
 use phpbb\request\request;
 use phpbb\template\template;
@@ -53,6 +54,8 @@ class api_controller
 	 */
 	private $user;
 
+	private $db;
+
 	/**
 	 * Constructor
 	 *
@@ -60,13 +63,14 @@ class api_controller
 	 * @param \phpbb\controller\helper $helper   Controller helper object
 	 * @param \phpbb\template\template $template Template object
 	 */
-	public function __construct(config $config, helper $helper, request $request, template $template, path_helper $path_helper, user $user)
+	public function __construct(config $config, helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db)
 	{
 		$this->config        = $config;
 		$this->helper        = $helper;
 		$this->request       = $request;
 		$this->template      = $template;
 		$this->user          = $user;
+		$this->db            = $db;
 		$this->web_root_path = $path_helper->get_web_root_path();
 		$this->redirect      = '';
 
@@ -98,6 +102,12 @@ class api_controller
 
 		if ($this->anubis->pass_challenge())
 		{
+			$data = ['anubisbb_pass' => 1];
+			$sql = 'UPDATE ' . SESSIONS_TABLE . ' 
+				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
+				WHERE session_id = "' . $this->user->data['session_id'] . '"';
+			$this->db->sql_query($sql);
+
 			// TODO: test redirects, make sure we can't go offsite
 			redirect($redirect);
 		}

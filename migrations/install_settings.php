@@ -30,6 +30,36 @@ class install_settings extends migration
 			['config.add', ['anubisbb_difficulty', 4]],
 			['config.add', ['anubisbb_sk', '']],
 			['config.add', ['anubisbb_ctime', 604800]], // One week
+			['config.update', ['session_gc', 600]], // Clean up sessions every 10 minutes
+		];
+	}
+
+	public function revert_data()
+	{
+		return [
+			['config.update', ['session_gc', 3600]], // Revert to 1 hour default
+		];
+	}
+
+	public function update_schema()
+	{
+		return [
+			'add_columns' => [
+				SESSIONS_TABLE => [
+					'anubisbb_pass' => ['UINT', 0],
+				],
+			],
+		];
+	}
+
+	public function revert_schema()
+	{
+		return [
+			'drop_columns' => [
+				SESSIONS_TABLE => [
+					'anubisbb_pass',
+				],
+			],
 		];
 	}
 }

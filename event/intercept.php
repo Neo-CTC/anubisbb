@@ -13,6 +13,7 @@ namespace neodev\anubisbb\event;
 use neodev\anubisbb\core\anubis_core;
 use phpbb\config\config;
 use phpbb\controller\helper;
+use phpbb\db\driver\driver_interface;
 use phpbb\path_helper;
 use phpbb\request\request;
 use phpbb\template\template;
@@ -30,6 +31,7 @@ class intercept implements EventSubscriberInterface
 			'core.user_setup_after'     => 'anubis_check', // We want to run on every page
 			'core.session_kill_after'   => 'logout', // User just logged out, set variable to remember that
 			'core.session_create_after' => 'logout_check', // After the user logged out a new session was created, catch it.
+			'core.session_gc_after'     => 'session_cleanup', // Cleanup unverified visitors
 		];
 	}
 
@@ -39,12 +41,13 @@ class intercept implements EventSubscriberInterface
 	private $config;
 	private $helper;
 	private $path_helper;
+	private $db;
 	/**
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
 	private $anubis;
 
-	public function __construct(user $user, template $template, request $request, config $config, helper $helper, path_helper $path_helper)
+	public function __construct(user $user, template $template, request $request, config $config, helper $helper, path_helper $path_helper, driver_interface $db)
 	{
 		$this->user        = $user;
 		$this->template    = $template;
@@ -52,6 +55,7 @@ class intercept implements EventSubscriberInterface
 		$this->config      = $config;
 		$this->helper      = $helper;
 		$this->path_helper = $path_helper;
+		$this->db          = $db;
 		$this->anubis      = new anubis_core($this->config, $this->request, $this->user);
 	}
 
@@ -186,7 +190,20 @@ class intercept implements EventSubscriberInterface
 		if (defined('IN_LOGOUT'))
 		{
 			$this->anubis->logout_cookie();
+
+			$data = ['anubisbb_pass' => 1];
+			$sql = 'UPDATE ' . SESSIONS_TABLE . ' 
+				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
+				WHERE session_id = "' . $this->user->data['session_id'] . '"';
+			$this->db->sql_query($sql);
 		}
 	}
 
+	public function session_cleanup()
+	{
+		// Remove unverified visitors sessions after 10 minutes.
+		$ttl = time() - 600;
+		$sql = 'DELETE FROM ' . SESSIONS_TABLE . ' WHERE session_user_id = ' . ANONYMOUS . ' and anubisbb_pass = 0 and session_time < ' . $ttl;
+		$this->db->sql_query($sql);
+	}
 }

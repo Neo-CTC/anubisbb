@@ -45,9 +45,14 @@
 			transition: width 0.25s ease-in;
 		}
 	</style>
-	<script id="anubis_version" type="application/json">"{{ version }}"</script>
-	<script id="static_prefix" type="application/json">"{{ static_path }}"</script>
-	<script id="route_prefix" type="application/json">"{{ route_path }}"</script>
+	<script id="anubis_settings" type="application/json">
+{
+	"version":"{{ version }}",
+	"static_prefix":"{{ static_path }}",
+	"route_prefix":"{{ route_path}}",
+	"root_path":"{{ root_path }}"
+}
+</script>
 	{% if challenge %}
 		<script id="challenge" type="application/json">{
 		"challenge": "{{ challenge }}",

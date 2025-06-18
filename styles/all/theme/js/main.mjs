@@ -80,9 +80,13 @@ function showContinueBar(hash, nonce, t0, t1) {
   const image = document.getElementById('image');
   const title = document.getElementById('title');
   const progress = document.getElementById('progress');
-  const anubisVersion = JSON.parse(document.getElementById('anubis_version').textContent);
-  const staticPrefix = JSON.parse(document.getElementById('static_prefix').textContent);
-  const passRoute = JSON.parse(document.getElementById('route_prefix').textContent);
+
+  const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
+  const anubisVersion = anubis_settings['version'];
+  const staticPrefix = anubis_settings['static_prefix'];
+  const passRoute = anubis_settings['route_prefix'];
+  const rootPath = anubis_settings['root_path'];
+
   const details = document.querySelector('details');
   let userReadDetails = false;
 
@@ -170,8 +174,8 @@ function showContinueBar(hash, nonce, t0, t1) {
   if (attempt_count >= 3)
   {
     ohNoes({
-      titleMsg: "Challenge error!",
-      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0');console.log('meh?')">Retry</a>, <a href="./ucp.php?mode=login">login</a>, or <a href="./memberlist.php?mode=contactadmin">contact the administrators</a> for help.`,
+      titleMsg: "Oh noes!",
+      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0')">Retry</a>, <a href="${rootPath}ucp.php?mode=login">login</a>, or <a href="${rootPath}memberlist.php?mode=contactadmin">contact the administrators</a> for help.`,
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
     return;

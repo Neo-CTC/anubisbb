@@ -160,6 +160,24 @@ function showContinueBar(hash, nonce, t0, t1) {
   let showingApology = false;
   const likelihood = Math.pow(16, -rules.report_as);
 
+
+  let attempt_count = parseInt(sessionStorage.getItem('anubis_attempts'))
+  if (isNaN(attempt_count))
+  {
+    attempt_count = 0;
+  }
+  console.log(attempt_count)
+  if (attempt_count >= 3)
+  {
+    ohNoes({
+      titleMsg: "Challenge error!",
+      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0');console.log('meh?')">Retry</a>, <a href="./ucp.php?mode=login">login</a>, or <a href="./memberlist.php?mode=contactadmin">contact the administrators</a> for help.`,
+      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+    });
+    return;
+  }
+
+
   try {
     const t0 = Date.now();
     const { hash, nonce } = await process(
@@ -199,9 +217,19 @@ function showContinueBar(hash, nonce, t0, t1) {
     console.log({ hash, nonce });
 
     title.innerHTML = "Success!";
+    attempt_count += 1
+    sessionStorage.setItem('anubis_attempts',attempt_count.toString())
+
+    const redir = window.location.href;
+    const goto = u(passRoute, {
+          response: hash,
+          nonce,
+          redir,
+          elapsedTime: t1 - t0
+        })
+
     status.innerHTML = `Done! Took ${t1 - t0}ms, ${nonce} iterations`;
     image.src = imageURL("happy", anubisVersion, staticPrefix);
-    progress.style.display = "none";
 
     if (userReadDetails) {
       const container = document.getElementById("progress");
@@ -223,21 +251,20 @@ function showContinueBar(hash, nonce, t0, t1) {
       container.innerHTML = "I've finished reading, continue →";
 
       function onDetailsExpand() {
-        const redir = window.location.href;
-        window.location.assign(
-          u(passRoute, {
-            response: hash,
-            nonce,
-            redir,
-            elapsedTime: t1 - t0
-          }),
-        );
+        window.location.assign(goto,);
       }
 
       container.onclick = onDetailsExpand;
       setTimeout(onDetailsExpand, 30000);
 
     } else {
+
+      let fc = progress.firstElementChild
+      fc.style.width = '100%';
+      fc.style.color = '#f9f5d7';
+      fc.style.display = 'flex';
+      fc.innerHTML = `<a href="${goto}" style="color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold">Continue ➞</a>`;
+
       setTimeout(() => {
         const redir = window.location.href;
         window.location.assign(
@@ -248,7 +275,7 @@ function showContinueBar(hash, nonce, t0, t1) {
             elapsedTime: t1 - t0
           }),
         );
-      }, 1000);
+      }, 10000);
     }
 
   } catch (err) {

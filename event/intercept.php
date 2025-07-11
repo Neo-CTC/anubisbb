@@ -1,9 +1,9 @@
 <?php
 /**
  *
- * AntiBot. An extension for the phpBB Forum Software package.
+ * AnubisBB. An extension for the phpBB Forum Software package.
  *
- * @copyright (c) 2022, Neo, https://crosstimecafe.com
+ * @copyright (c) 2025, NeoDev
  * @license       GNU General Public License, version 2 (GPL-2.0)
  *
  */

@@ -73,14 +73,6 @@ class anubis_core
 	 */
 	public function make_challenge()
 	{
-		// TODO: Chrome is weird about accept language,
-		$lang = $this->request->server('HTTP_ACCEPT_LANGUAGE', '');
-		if (!$lang)
-		{
-			$this->error = 'Missing Accept-Language header';
-			return false;
-		}
-
 		// TODO: Do we really need $user for this? Can't we get it from $_SERVER?
 		$ip      = $this->user->ip;
 		$browser = $this->user->browser;
@@ -106,8 +98,7 @@ class anubis_core
 		$fingerprint = hash('sha256', $this->secret_key);
 
 		$challengeData = sprintf(
-			"Accept-Language=%s,X-Real-IP=%s,User-Agent=%s,WeekTime=%s,Fingerprint=%s,Difficulty=%d",
-			$lang,
+			"X-Real-IP=%s,User-Agent=%s,WeekTime=%s,Fingerprint=%s,Difficulty=%d",
 			$ip,
 			$browser,
 			$time,

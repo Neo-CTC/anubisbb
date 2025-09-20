@@ -96,21 +96,38 @@ class api_controller
 	{
 		$this->logger->log('Challenge check page');
 		$redirect = $this->request->variable('redir', '');
-		$host     = $this->request->server('SERVER_NAME', '');
 
-		// TODO: validate redirect
+		if ($redirect === '')
+		{
+			$this->logger->log('Missing redirect');
+			return $this->build_error_page('Invalid request');
+		}
+
+		// Bad character test (control characters, backslash)
+		if (preg_match('/[\x00-\x1F\x5C]/',$redirect))
+		{
+			$this->logger->log('Bad characters in redirect');
+			return $this->build_error_page('Invalid request');
+		}
+
 		$this->logger->log('Redirect set to ' . $redirect);
 
 		// The redirect hostname must match that of the server
-		$redirect_host = parse_url($redirect, PHP_URL_HOST);
-		if ($host !==  $redirect_host || $redirect === '')
+		$url_parts = parse_url($redirect);
+		if ($url_parts === false || $url_parts['host'] !== $this->user->host)
 		{
-			$this->logger->log("Redirect host ($redirect_host) did not match server host ($host)");
+			$this->logger->log("Redirect host ({$url_parts['host']}) did not match server host ({$this->user->host})");
 			return $this->build_error_page('Invalid request');
 		}
-		$this->redirect = $redirect;
-		// TODO: catch redirect loops
 
+		// Somehow the redirect points back to the api??
+		if (strpos($redirect, 'anubis/api/') !== false)
+		{
+			// Send them back to the forum index
+			$redirect = 'index.php';
+		}
+
+		$this->redirect = $redirect;
 
 		$this->template->assign_var('version', $this->anubis->version);
 

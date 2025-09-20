@@ -1,5 +1,5 @@
-import processFast from "./proof-of-work.mjs";
-import processSlow from "./proof-of-work-slow.mjs";
+import processFast from "./proof-of-work.js";
+import processSlow from "./proof-of-work-slow.js";
 
 const defaultDifficulty = 4;
 const algorithms = {

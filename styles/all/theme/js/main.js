@@ -1,6 +1,6 @@
-import processFast from "./proof-of-work.mjs";
-import processSlow from "./proof-of-work-slow.mjs";
-import { testVideo } from "./video.mjs";
+import processFast from "./proof-of-work.js";
+import processSlow from "./proof-of-work-slow.js";
+import { testVideo } from "./video.js";
 
 const algorithms = {
   "fast": processFast,

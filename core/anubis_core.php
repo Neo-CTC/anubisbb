@@ -1,8 +1,4 @@
 <?php
-// PHPStorm complains that sodium needs to be added to composer but sodium
-// is builtin since php7.2, so this "should" work
-/** @noinspection PhpComposerExtensionStubsInspection */
-
 /**
  *
  * AnubisBB. An extension for the phpBB Forum Software package.

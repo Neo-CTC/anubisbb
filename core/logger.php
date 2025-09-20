@@ -20,7 +20,7 @@ class logger
 	{
 		$this->root = $root . "store/";
 		$this->debug_log = date('c')." | {$base} | {$user->ip} | {$user->browser}\n";
-		$this->debug = true;
+		$this->debug = false;
 	}
 
 	public function log($msg)

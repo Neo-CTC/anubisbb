@@ -19,12 +19,12 @@ class main_info
 	{
 		return [
 			'filename' => '\neodev\anubisbb\acp\main_module',
-			'title'    => 'ACP_ANUBISBB_TITLE',
+			'title'    => 'ACP_ANUBISBB_TITLE_MODULE',
 			'modes'    => [
 				'settings' => [
-					'title' => 'ACP_ANUBISBB',
+					'title' => 'ACP_ANUBISBB_TITLE_SETTINGS',
 					'auth'  => 'ext_neodev/anubisbb && acl_a_board',
-					'cat'   => ['ACP_ANUBISBB_TITLE'],
+					'cat'   => ['ACP_ANUBISBB_TITLE_MODULE'],
 				],
 			],
 		];

@@ -30,15 +30,16 @@ class main_module
 	public function main($id, $mode)
 	{
 		global $phpbb_container;
-
 		/** @var \neodev\anubisbb\controller\acp_controller $acp_controller */
 		$acp_controller = $phpbb_container->get('neodev.anubisbb.controller.acp');
 
-		// Load a template from adm/style for our ACP page
-		$this->tpl_name = 'acp_anubisbb_body';
-
-		// Set the page title for our ACP page
-		$this->page_title = 'ACP_ANUBISBB_TITLE';
+		switch ($mode)
+		{
+			case 'settings':
+			default:
+				$this->tpl_name   = 'acp_anubisbb_settings_body';
+				$this->page_title = 'ACP_ANUBISBB_TITLE_SETTINGS';
+		}
 
 		// Make the $u_action url available in our ACP controller
 		$acp_controller->set_page_url($this->u_action);

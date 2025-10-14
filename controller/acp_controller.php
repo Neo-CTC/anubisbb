@@ -23,25 +23,25 @@ use phpbb\user;
 class acp_controller
 {
 	/** @var \phpbb\config\config */
-	protected $config;
+	private $config;
 
 	/** @var \phpbb\language\language */
-	protected $language;
+	private $language;
 
 	/** @var \phpbb\log\log */
-	protected $log;
+	private $log;
 
 	/** @var \phpbb\request\request */
-	protected $request;
+	private $request;
 
 	/** @var \phpbb\template\template */
-	protected $template;
+	private $template;
 
 	/** @var \phpbb\user */
-	protected $user;
+	private $user;
 
 	/** @var string Custom form action */
-	protected $u_action;
+	private $u_action;
 
 	/**
 	 * Constructor.
@@ -70,9 +70,6 @@ class acp_controller
 	 */
 	public function display_options()
 	{
-		// Add our common language file
-		$this->language->add_lang('common', 'neodev/anubisbb');
-
 		// Create a form key for preventing CSRF attacks
 		add_form_key('neodev_anubisbb_acp');
 
@@ -88,18 +85,23 @@ class acp_controller
 				$errors[] = $this->language->lang('FORM_INVALID');
 			}
 
-			// If no errors, process the form data
 			if (empty($errors))
 			{
-				// Set the options the user configured
-				$this->config->set('neodev_anubisbb_goodbye', $this->request->variable('neodev_anubisbb_goodbye', 0));
+				$d = $this->request->variable('difficulty', 0);
+				$d = ($d <= 8 && $d >= 1) ? $d : 4;
+				$this->config->set('anubisbb_difficulty', $d);
+
+				$t = $this->request->variable('ctime', 0);
+				// Set sane limits, min 5 minutes, max 13 months
+				$t = ($t >= 300 && $t <= 34186670) ? $t : 604800;
+				$this->config->set('anubisbb_ctime', $t);
 
 				// Add option settings change action to the admin log
 				$this->log->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_ACP_ANUBISBB_SETTINGS');
 
 				// Option settings have been updated and logged
 				// Confirm this to the user and provide link back to previous page
-				trigger_error($this->language->lang('ACP_ANUBISBB_SETTING_SAVED') . adm_back_link($this->u_action));
+				trigger_error($this->language->lang('ACP_ANUBISBB_SETTINGS_SAVED') . adm_back_link($this->u_action));
 			}
 		}
 
@@ -112,8 +114,14 @@ class acp_controller
 
 			'U_ACTION' => $this->u_action,
 
-			'NEODEV_ANUBISBB_GOODBYE' => (bool) $this->config['neodev_anubisbb_goodbye'],
+			'CONFIG_DIFFICULTY' => $this->config['anubisbb_difficulty'],
+			'CONFIG_TIME'       => $this->config['anubisbb_ctime'],
 		]);
+		// TODO: button to reset secret key
+		// TODO: validate cookie data against challenge
+		// TODO: early intercept
+		// TODO: exclude paths
+		// TODO: strict & lenient
 	}
 
 	/**

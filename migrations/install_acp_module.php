@@ -10,31 +10,34 @@
 
 namespace neodev\anubisbb\migrations;
 
-class install_acp_module extends \phpbb\db\migration\migration
+use phpbb\db\migration\migration;
+
+class install_acp_module extends migration
 {
 	public function effectively_installed()
 	{
-		return isset($this->config['neodev_anubisbb_goodbye']);
+		return isset($this->config['neodev_anubisbb_early']);
 	}
 
 	public static function depends_on()
 	{
-		return ['\phpbb\db\migration\data\v320\v320'];
+		return ['\neodev\anubisbb\migrations\install_settings'];
 	}
 
 	public function update_data()
 	{
 		return [
-			['config.add', ['neodev_anubisbb_goodbye', 0]],
+			['config.add', ['anubisbb_early', 1]],
+			// TODO, exclude paths
 
 			['module.add', [
 				'acp',
 				'ACP_CAT_DOT_MODS',
-				'ACP_ANUBISBB_TITLE'
+				'ACP_ANUBISBB_TITLE_MODULE'
 			]],
 			['module.add', [
 				'acp',
-				'ACP_ANUBISBB_TITLE',
+				'ACP_ANUBISBB_TITLE_MODULE',
 				[
 					'module_basename'	=> '\neodev\anubisbb\acp\main_module',
 					'modes'				=> ['settings'],

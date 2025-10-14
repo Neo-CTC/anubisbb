@@ -35,8 +35,15 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, [
-	'ACP_ANUBISBB_TITLE' => 'AnubisBB Module',
-	'ACP_ANUBISBB'       => 'AnubisBB Settings',
+	'ACP_ANUBISBB_TITLE_MODULE'   => 'AnubisBB',
+	'ACP_ANUBISBB_TITLE_SETTINGS' => 'AnubisBB Settings',
 
-	'LOG_ACP_ANUBISBB_SETTINGS' => '<strong>AnubisBB settings updated</strong>',
+	'ACP_ANUBISBB_SETTINGS_DIFFICULTY'         => 'Difficulty',
+	'ACP_ANUBISBB_SETTINGS_DIFFICULTY_EXPLAIN' => 'Difficulty of authentication challenge. 4 or 5 is typical. Whole numbers only.',
+
+	'ACP_ANUBISBB_SETTINGS_COOKIE_TIME'         => 'Authentication duration',
+	'ACP_ANUBISBB_SETTINGS_COOKIE_TIME_EXPLAIN' => 'Length of time before the user must reauthenticate in seconds. Default: 604800 (one week)',
+
+	'ACP_ANUBISBB_SETTINGS_SAVED' => 'AnubisBB settings saved',
+	'LOG_ACP_ANUBISBB_SETTINGS'   => '<strong>AnubisBB settings updated</strong>',
 ]);

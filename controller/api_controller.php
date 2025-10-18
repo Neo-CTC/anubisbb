@@ -14,7 +14,7 @@ use neodev\anubisbb\core\anubis_core;
 use neodev\anubisbb\core\logger;
 
 use phpbb\config\config;
-use phpbb\controller\helper;
+use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
 use phpbb\path_helper;
 use phpbb\request\request;
@@ -27,13 +27,13 @@ use phpbb\user;
 class api_controller
 {
 	/** @var \phpbb\config\config */
-	protected $config;
+	private $config;
 
 	/** @var \phpbb\controller\helper */
-	protected $helper;
+	private $controller_helper;
 
 	/** @var \phpbb\template\template */
-	protected $template;
+	private $template;
 	/**
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
@@ -70,11 +70,11 @@ class api_controller
 	 * @param \phpbb\controller\helper $helper   Controller helper object
 	 * @param \phpbb\template\template $template Template object
 	 */
-	public function __construct(config $config, helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db)
+	public function __construct(config $config, controller_helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db)
 	{
-		$this->config        = $config;
-		$this->helper        = $helper;
-		$this->request       = $request;
+		$this->config            = $config;
+		$this->controller_helper = $helper;
+		$this->request           = $request;
 		$this->template      = $template;
 		$this->user          = $user;
 		$this->db            = $db;
@@ -151,6 +151,46 @@ class api_controller
 		}
 	}
 
+	public function make_challenge()
+	{
+		$this->user->session_kill(false);
+		$root_path = $this->web_root_path;
+		$this->template->assign_var('root_path', $root_path);
+
+		// Paths for static files and the verification api
+		$this->template->assign_vars([
+			'static_path' => $root_path . 'ext/neodev/anubisbb/styles/all/theme/',
+			'route_path'  => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
+			'version'     => $this->anubis->version,
+		]);
+
+		// Fetch the challenge hash
+		$challenge = $this->anubis->make_challenge();
+		$this->logger->log('Challenge created: ' . $challenge);
+		if (!$challenge)
+		{
+			// Problem making the challenge?
+			// TODO: log the error to phpBB
+			$this->template->assign_vars([
+				'title'         => 'Oh noes!',
+				'error_message' => $this->anubis->error,
+				'retry_link'    => build_url(), // Basically a link to the current url
+			]);
+			return $this->controller_helper->render('@neodev_anubisbb/failure_challenge.html');
+		}
+		else
+		{
+			// Display challenge page
+			$this->template->assign_vars([
+				'title'      => 'Making sure you&#39;re not a bot!',
+				'difficulty' => $this->config['anubisbb_difficulty'],
+				'challenge'  => $challenge,
+			]);
+			$this->logger->log('Difficulty set to ' . $this->config['anubisbb_difficulty']);
+			return $this->controller_helper->render('@neodev_anubisbb/make_challenge.html');
+		}
+	}
+
 	/**
 	 * Display an error page
 	 *
@@ -171,7 +211,7 @@ class api_controller
 		]);
 
 		// Send to Symfony for rendering
-		return $this->helper->render('@neodev_anubisbb/fail_challenge.html');
+		return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');
 	}
 
 	public function benchmark()
@@ -180,6 +220,6 @@ class api_controller
 			'title'       => 'Speed test',
 			'static_path' => $this->web_root_path . 'ext/neodev/anubisbb/styles/all/theme/',
 		]);
-		return $this->helper->render('@neodev_anubisbb/benchmark.html');
+		return $this->controller_helper->render('@neodev_anubisbb/benchmark.html');
 	}
 }

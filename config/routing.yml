@@ -1,6 +1,9 @@
 neodev_anubisbb_pass_challenge:
     path: /anubis/api/pass_challenge
     defaults: { _controller: neodev.anubisbb.controller.api:pass_challenge }
+neodev_anubisbb_make_challenge:
+    path: /anubis/api/make_challenge
+    defaults: { _controller: neodev.anubisbb.controller.api:make_challenge }
 neodev_anubisbb_benchmark:
     path: /anubis/api/benchmark
     defaults: { _controller: neodev.anubisbb.controller.api:benchmark }

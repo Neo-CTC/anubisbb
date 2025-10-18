@@ -27,10 +27,12 @@ class install_acp_module extends migration
 	public function update_data()
 	{
 		return [
-			['config.add', ['anubisbb_early', 1]],
+			['config.add', ['anubisbb_early', 0]],
+			['config.add', ['anubisbb_strict_cookies', 1]],
 			// TODO, exclude paths
 
-			['module.add', [
+			[
+				'module.add', [
 				'acp',
 				'ACP_CAT_DOT_MODS',
 				'ACP_ANUBISBB_TITLE_MODULE'

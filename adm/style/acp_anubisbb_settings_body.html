@@ -15,8 +15,8 @@
 		<legend>{{ lang('SETTINGS') }}</legend>
 		<dl>
 			<dt>
-				<label for="setting_difficulty">{{ lang('ACP_ANUBISBB_SETTINGS_DIFFICULTY') ~ lang('COLON') }}</label><br>
-				<span>{{lang('ACP_ANUBISBB_SETTINGS_DIFFICULTY_EXPLAIN')}}</span>
+				<label for="setting_difficulty">{{ lang('ACP_ANUBISBB_SETTINGS_DIFFICULTY') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_DIFFICULTY_EXPLAIN') }}</span>
 			</dt>
 			<dd>
 				<input id="setting_difficulty" type="number" min="1" max="8" step="1" name="difficulty" value="{{ CONFIG_DIFFICULTY }}">
@@ -25,17 +25,53 @@
 		<dl>
 
 			<dt>
-				<label for="setting_time">{{ lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME') ~ lang('COLON') }}</label><br>
-				<span>{{lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME_EXPLAIN')}}</span>
+				<label for="setting_time">{{ lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME_EXPLAIN') }}</span>
 			</dt>
 			<dd>
 				<input id="setting_time" type="number" min="300" max="34186670" step="1" name="ctime" value="{{ CONFIG_TIME }}" style="width: unset">
 			</dd>
 		</dl>
+		<dl>
+			<dt>
+				<label for="setting_strict">{{ lang('ACP_ANUBISBB_SETTINGS_STRICT_LABEL') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_STRICT_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<label>
+					<input id="setting_strict" type="radio" class="radio" name="strict_cookies" value="1" {% if CONFIG_STRICT %} checked{% endif %}> {{ lang('ACP_ANUBISBB_SETTINGS_STRICT_STRICT') }}
+				</label>
+				<label>
+					<input id="setting_lenient" type="radio" class="radio" name="strict_cookies" value="0" {% if not CONFIG_STRICT %} checked{% endif %}> {{ lang('ACP_ANUBISBB_SETTINGS_STRICT_LENIENT') }}
+				</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt>
+				<label for="setting_early">{{ lang('ACP_ANUBISBB_SETTINGS_EARLY') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_EARLY_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_early" type="checkbox" class="radio" name="early" value="1" {% if CONFIG_EARLY %} checked{% endif %}>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE') }}</legend>
+		<dl>
+			<dt>
+				<label for="setting_early">{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input class="button2" type="submit" id="submit" name="sk_submit" value="{{ lang('RUN') }}">
+			</dd>
+		</dl>
 	</fieldset>
 
 	<fieldset class="submit-buttons">
-		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />&nbsp;
+		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}">
 		{{ S_FORM_TOKEN }}
 	</fieldset>
 

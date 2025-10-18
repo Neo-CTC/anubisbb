@@ -10,6 +10,7 @@
 
 namespace neodev\anubisbb\controller;
 
+use neodev\anubisbb\core\anubis_core;
 use phpbb\config\config;
 use phpbb\language\language;
 use phpbb\log\log;
@@ -76,6 +77,13 @@ class acp_controller
 		// Create an array to collect errors that will be output to the user
 		$errors = [];
 
+		if ($this->request->is_set_post('sk_submit'))
+		{
+			$core = new anubis_core($this->config, $this->request, $this->user);
+			$core->gen_sk();
+			trigger_error($this->language->lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_REGEN') . adm_back_link($this->u_action));
+		}
+
 		// Is the form being submitted to us?
 		if ($this->request->is_set_post('submit'))
 		{
@@ -95,6 +103,13 @@ class acp_controller
 				// Set sane limits, min 5 minutes, max 13 months
 				$t = ($t >= 300 && $t <= 34186670) ? $t : 604800;
 				$this->config->set('anubisbb_ctime', $t);
+
+				$s = $this->request->variable('strict_cookies', 1);
+				$this->config->set('anubisbb_strict_cookies', $s !== 0 ? 1 : 0);
+
+				$e = $this->request->variable('early', 0);
+				$this->config->set('anubisbb_early', $e !== 0 ? 1 : 0);
+
 
 				// Add option settings change action to the admin log
 				$this->log->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_ACP_ANUBISBB_SETTINGS');
@@ -116,12 +131,16 @@ class acp_controller
 
 			'CONFIG_DIFFICULTY' => $this->config['anubisbb_difficulty'],
 			'CONFIG_TIME'       => $this->config['anubisbb_ctime'],
+			'CONFIG_STRICT'     => $this->config['anubisbb_strict_cookies'],
+			'CONFIG_EARLY'      => $this->config['anubisbb_early'],
 		]);
+
+
 		// TODO: button to reset secret key
 		// TODO: validate cookie data against challenge
 		// TODO: early intercept
 		// TODO: exclude paths
-		// TODO: strict & lenient
+		// TODO: strict & lenient cookie check
 	}
 
 	/**

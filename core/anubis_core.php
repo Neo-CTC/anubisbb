@@ -25,6 +25,7 @@ class anubis_core
 	private $cookie_name;
 	private $cookie_time;
 
+	private $config;
 	private $request;
 	private $user;
 	private $difficulty;
@@ -35,28 +36,34 @@ class anubis_core
 		$this->error   = '';
 		$this->version = 'v1.18.0-pre1-4-g3701b2b';
 
+		$this->config  = $config;
 		$this->request = $request;
 		$this->user    = $user;
 
-		$this->difficulty = $config['anubisbb_difficulty'];
-		$this->secret_key = hex2bin($config['anubisbb_sk']);
+		$this->difficulty = $this->config['anubisbb_difficulty'];
 
-		// Set cookie ttl with a safe minimum of 60 seconds
-		$this->cookie_time = ((int) $config['anubisbb_ctime'] > 60) ? (int) $config['anubisbb_ctime'] : 60;
-
-		$this->cookie_name = $config['cookie_name'] . '_anubisbb';
-
+		$this->secret_key = hex2bin($this->config['anubisbb_sk']);
 		if (strlen($this->secret_key) != SODIUM_CRYPTO_SIGN_SECRETKEYBYTES)
 		{
-			// Generate secret+public keys
-			$kp = sodium_crypto_sign_keypair();
-
-			// Save only the secret key
-			$sk = sodium_crypto_sign_secretkey($kp);
-
-			$config->set('anubisbb_sk', bin2hex($sk));
-			$this->secret_key = $sk;
+			$this->gen_sk();
 		}
+
+		// Set cookie ttl with a safe minimum of 60 seconds
+		$this->cookie_time = ((int) $this->config['anubisbb_ctime'] > 60) ? (int) $this->config['anubisbb_ctime'] : 60;
+
+		$this->cookie_name = $this->config['cookie_name'] . '_anubisbb';
+	}
+
+	public function gen_sk(): void
+	{
+		// Generate secret+public keys
+		$kp = sodium_crypto_sign_keypair();
+
+		// Save only the secret key
+		$sk = sodium_crypto_sign_secretkey($kp);
+
+		$this->config->set('anubisbb_sk', bin2hex($sk));
+		$this->secret_key = $sk;
 	}
 
 	/**
@@ -80,7 +87,7 @@ class anubis_core
 
 		// Anubis rounds the time to the nearest week, a.k.a. the nearest Monday
 		$monday = new DateTime('now', new DateTimeZone('UTC'));
-		$monday->modify((getdate()['wday'] !== 1 ? 'last' : 'this') . " monday");
+		$monday->modify((getdate()['wday'] !== 1 ? 'last' : 'this') . ' monday');
 
 		// Half a week is 3.5 days or 302400 seconds
 		if (time() - $monday->getTimestamp() >= 302400)
@@ -89,12 +96,12 @@ class anubis_core
 			$monday->modify('next monday');
 		}
 		// RFC3339 format but with a Z
-		$time = $monday->format("Y-m-d\TH:i:s\Z");
+		$time = $monday->format('Y-m-d\TH:i:s\Z');
 
 		$fingerprint = hash('sha256', $this->secret_key);
 
 		$challengeData = sprintf(
-			"X-Real-IP=%s,User-Agent=%s,WeekTime=%s,Fingerprint=%s,Difficulty=%d",
+			'X-Real-IP=%s,User-Agent=%s,WeekTime=%s,Fingerprint=%s,Difficulty=%d',
 			$ip,
 			$browser,
 			$time,
@@ -114,14 +121,14 @@ class anubis_core
 		$response = $this->request->variable('response', '');
 		if (!$response)
 		{
-			$this->error = "Invalid request";
+			$this->error = 'Invalid request';
 			return false;
 		}
 
 		$nonce = $this->request->variable('nonce', 0);
 		if (!$nonce)
 		{
-			$this->error = "Invalid request";
+			$this->error = 'Invalid request';
 			return false;
 		}
 
@@ -138,13 +145,13 @@ class anubis_core
 		if (!hash_equals($challenge_hash, $response))
 		{
 			// TODO: log bad attempts to log file
-			$this->error = "Invalid hash";
+			$this->error = 'Invalid hash';
 			return false;
 		}
 
 		if (substr($challenge_hash, 0, $this->difficulty) !== str_repeat('0', $this->difficulty))
 		{
-			$this->error = "Invalid hash";
+			$this->error = 'Invalid hash';
 			return false;
 		}
 
@@ -225,10 +232,10 @@ class anubis_core
 	{
 		$time    = time();
 		$payload = json_encode([
-			"challenge" => $this->make_challenge(), // Challenge str from browser fingerprint
-			"exp"       => $time + $this->cookie_time, // Expiration, 1 week
-			"iat"       => $time,      // Issued
-			"nbf"       => $time - 60, // Not before
+			'challenge' => $this->make_challenge(), // Challenge str from browser fingerprint
+			'exp'       => $time + $this->cookie_time, // Expiration, 1 week
+			'iat'       => $time,      // Issued
+			'nbf'       => $time - 60, // Not before
 
 			// Unused
 			// "nonce"     => $nonce,
@@ -252,7 +259,7 @@ class anubis_core
 		}
 
 		// Append the signature to the token, and the cookie is baked
-		$jwt .= "." . $this->b64_encode_url($sig);
+		$jwt .= '.' . $this->b64_encode_url($sig);
 		$this->user->set_cookie('anubisbb', $jwt, $time + $this->cookie_time);
 	}
 

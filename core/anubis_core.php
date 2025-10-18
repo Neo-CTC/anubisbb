@@ -215,6 +215,12 @@ class anubis_core
 			return false;
 		}
 
+		// Lenient mode, skip challenge check
+		if ($this->config['anubisbb_strict_cookies'] === '0')
+		{
+			return true;
+		}
+
 		// The challenge string is more or less a fingerprint of the browser.
 		// Make sure it still matches
 		if ($payload['challenge'] !== $this->make_challenge())

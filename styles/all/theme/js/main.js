@@ -30,51 +30,6 @@ const dependencies = [
   },
 ];
 
-function showContinueBar(hash, nonce, t0, t1) {
-  const barContainer = document.createElement("div");
-  barContainer.style.marginTop = "1rem";
-  barContainer.style.width = "100%";
-  barContainer.style.maxWidth = "32rem";
-  barContainer.style.background = "#3c3836";
-  barContainer.style.borderRadius = "4px";
-  barContainer.style.overflow = "hidden";
-  barContainer.style.cursor = "pointer";
-  barContainer.style.height = "2rem";
-  barContainer.style.marginLeft = "auto";
-  barContainer.style.marginRight = "auto";
-  barContainer.title = "Click to continue";
-
-  const barInner = document.createElement("div");
-  barInner.className = "bar-inner";
-  barInner.style.display = "flex";
-  barInner.style.alignItems = "center";
-  barInner.style.justifyContent = "center";
-  barInner.style.color = "white";
-  barInner.style.fontWeight = "bold";
-  barInner.style.height = "100%";
-  barInner.style.width = "0";
-  barInner.innerText = "I've finished reading, continue →";
-
-  barContainer.appendChild(barInner);
-  document.body.appendChild(barContainer);
-
-  requestAnimationFrame(() => {
-    barInner.style.width = "100%";
-  });
-
-  barContainer.onclick = () => {
-    const redir = window.location.href;
-    window.location.replace(
-      u("/pass-challenge.php", {
-        response: hash,
-        nonce,
-        redir,
-        elapsedTime: t1 - t0
-      })
-    );
-  };
-}
-
 (async () => {
   const status = document.getElementById('status');
   const image = document.getElementById('image');
@@ -224,7 +179,13 @@ function showContinueBar(hash, nonce, t0, t1) {
     attempt_count += 1
     sessionStorage.setItem('anubis_attempts',attempt_count.toString())
 
-    const redir = window.location.href;
+    const url_here = new URL(window.location.href)
+    let redir;
+    if (url_here.searchParams.get('redir')) {
+      redir = url_here.searchParams.get('redir')
+    } else {
+      redir = window.location.href;
+    }
     const goto = u(passRoute, {
           response: hash,
           nonce,
@@ -270,15 +231,7 @@ function showContinueBar(hash, nonce, t0, t1) {
       fc.innerHTML = `<a href="${goto}" style="color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold">Continue ➞</a>`;
 
       setTimeout(() => {
-        const redir = window.location.href;
-        window.location.assign(
-          u(passRoute, {
-            response: hash,
-            nonce,
-            redir,
-            elapsedTime: t1 - t0
-          }),
-        );
+        window.location.assign(goto);
       }, 10000);
     }
 

@@ -70,6 +70,10 @@ class intercept implements EventSubscriberInterface
 		$this->logger = new logger('Intercept', $path_helper->get_phpbb_root_path(), $user);
 	}
 
+	/**
+	 * Intercepts the request as early as possible before a user session is created
+	 * @return void
+	 */
 	public function early_intercept()
 	{
 		if ($this->config['anubisbb_early'] !== '1')
@@ -79,7 +83,11 @@ class intercept implements EventSubscriberInterface
 
 		// Cookie check
 		$cookie_name = $this->config['cookie_name'];
-		if ($this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) || $this->request->is_set($cookie_name . '_u', $this->request::COOKIE) || $this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE))
+		if (
+			$this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) ||
+			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
+			$this->request->is_set($cookie_name . '_u', $this->request::COOKIE)
+		)
 		{
 			return;
 		}
@@ -104,7 +112,7 @@ class intercept implements EventSubscriberInterface
 			return;
 		}
 
-		$route    = $this->controller_helper->route('neodev_anubisbb_make_challenge');
+		$route = $this->controller_helper->route('neodev_anubisbb_make_challenge');
 		// $this->user->set_cookie('anubisbb_early','true', 0, false);
 
 		echo <<< END
@@ -114,10 +122,14 @@ class intercept implements EventSubscriberInterface
 </head>
 <body>
 <noscript>Javascript is required to continue</noscript>
+<a href="$route">Go</a>
 <script>
-	u = new URL('$route', window.location.href);
+const goto = (() => {
+	const u = new URL('$route', window.location.href);
 	u.searchParams.set('redir', window.location.href)
 	window.location = u.toString();
+})
+setTimeout(goto, 50)
 </script>
 </body>
 </html>

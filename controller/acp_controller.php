@@ -134,13 +134,7 @@ class acp_controller
 			'CONFIG_STRICT'     => $this->config['anubisbb_strict_cookies'],
 			'CONFIG_EARLY'      => $this->config['anubisbb_early'],
 		]);
-
-
-		// TODO: button to reset secret key
-		// TODO: validate cookie data against challenge
-		// TODO: early intercept
 		// TODO: exclude paths
-		// TODO: strict & lenient cookie check
 	}
 
 	/**

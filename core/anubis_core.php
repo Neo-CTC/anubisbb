@@ -76,7 +76,6 @@ class anubis_core
 	 */
 	public function make_challenge()
 	{
-		// TODO: Do we really need $user for this? Can't we get it from $_SERVER?
 		$ip      = $this->user->ip;
 		$browser = $this->user->browser;
 		if (!$browser)

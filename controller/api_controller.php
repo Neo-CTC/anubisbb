@@ -157,6 +157,8 @@ class api_controller
 		$root_path = $this->web_root_path;
 		$this->template->assign_var('root_path', $root_path);
 
+		$time = time();
+
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
 			'static_path' => $root_path . 'ext/neodev/anubisbb/styles/all/theme/',
@@ -165,7 +167,7 @@ class api_controller
 		]);
 
 		// Fetch the challenge hash
-		$challenge = $this->anubis->make_challenge();
+		$challenge = $this->anubis->make_challenge($time);
 		$this->logger->log('Challenge created: ' . $challenge);
 		if (!$challenge)
 		{
@@ -185,6 +187,7 @@ class api_controller
 				'title'      => 'Making sure you&#39;re not a bot!',
 				'difficulty' => $this->config['anubisbb_difficulty'],
 				'challenge'  => $challenge,
+				'timestamp'  => $time,
 			]);
 			$this->logger->log('Difficulty set to ' . $this->config['anubisbb_difficulty']);
 			return $this->controller_helper->render('@neodev_anubisbb/make_challenge.html');

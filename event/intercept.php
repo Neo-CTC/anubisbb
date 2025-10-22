@@ -82,11 +82,12 @@ class intercept implements EventSubscriberInterface
 		}
 
 		// Cookie check
+		// Look for anubis cookies or user cookie
 		$cookie_name = $this->config['cookie_name'];
 		if (
 			$this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) ||
 			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
-			$this->request->is_set($cookie_name . '_u', $this->request::COOKIE)
+			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u',0) > 1)
 		)
 		{
 			return;
@@ -178,8 +179,10 @@ END;
 			'version'     => $this->anubis->version,
 		]);
 
+		$timestamp = time();
+
 		// Fetch the challenge hash
-		$challenge = $this->anubis->make_challenge();
+		$challenge = $this->anubis->make_challenge($timestamp);
 		$this->logger->log('Challenge created: ' . $challenge);
 		if (!$challenge)
 		{
@@ -199,6 +202,7 @@ END;
 				'title'      => 'Making sure you&#39;re not a bot!',
 				'difficulty' => $this->config['anubisbb_difficulty'],
 				'challenge'  => $challenge,
+				'timestamp'  => $timestamp,
 			]);
 			$this->logger->log('Difficulty set to ' . $this->config['anubisbb_difficulty']);
 			$this->template->set_filenames(['body' => '@neodev_anubisbb/make_challenge.html']);

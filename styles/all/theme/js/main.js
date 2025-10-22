@@ -94,7 +94,7 @@ const dependencies = [
     }
   }
 
-  const { challenge, rules } = JSON.parse(document.getElementById('challenge').textContent);
+  const { challenge, timestamp, rules } = JSON.parse(document.getElementById('challenge').textContent);
 
   const process = algorithms[rules.algorithm];
   if (!process) {
@@ -190,6 +190,7 @@ const dependencies = [
           response: hash,
           nonce,
           redir,
+          timestamp,
           elapsedTime: t1 - t0
         })
 

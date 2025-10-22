@@ -72,9 +72,11 @@ class anubis_core
 	 * Based on the challengeFor function from Anubis
 	 * https://github.com/TecharoHQ/anubis/blob/main/lib/anubis.go#L71
 	 *
+	 * @param $time
+	 *
 	 * @return false|string
 	 */
-	public function make_challenge()
+	public function make_challenge($time)
 	{
 		$ip      = $this->user->ip;
 		$browser = $this->user->browser;
@@ -84,18 +86,19 @@ class anubis_core
 			return false;
 		}
 
-		// Anubis rounds the time to the nearest week, a.k.a. the nearest Monday
-		$monday = new DateTime('now', new DateTimeZone('UTC'));
-		$monday->modify((getdate()['wday'] !== 1 ? 'last' : 'this') . ' monday');
-
-		// Half a week is 3.5 days or 302400 seconds
-		if (time() - $monday->getTimestamp() >= 302400)
-		{
-			$monday = new DateTime('now', new DateTimeZone('UTC'));
-			$monday->modify('next monday');
-		}
-		// RFC3339 format but with a Z
-		$time = $monday->format('Y-m-d\TH:i:s\Z');
+		// // Anubis rounds the time to the nearest week, a.k.a. the nearest Monday
+		// $monday = new DateTime('now', new DateTimeZone('UTC'));
+		// $monday->modify((getdate()['wday'] !== 1 ? 'last' : 'this') . ' monday');
+		//
+		// // Half a week is 3.5 days or 302400 seconds
+		// if (time() - $monday->getTimestamp() >= 302400)
+		// {
+		// 	$monday = new DateTime('now', new DateTimeZone('UTC'));
+		// 	$monday->modify('next monday');
+		// }
+		// // RFC3339 format but with a Z
+		// $time = $monday->format('Y-m-d\TH:i:s\Z');
+		// Time or time?
 
 		$fingerprint = hash('sha256', $this->secret_key);
 
@@ -131,7 +134,17 @@ class anubis_core
 			return false;
 		}
 
-		$challenge = $this->make_challenge();
+		$timestamp = $this->request->variable('timestamp', 0);
+		$time = time();
+
+		// Timestamp can't be in the future nor older than 10 minutes
+		if ($timestamp > $time || $timestamp < $time - 600)
+		{
+			$this->error = 'Invalid timestamp';
+			return false;
+		}
+
+		$challenge = $this->make_challenge($timestamp);
 		if (!$challenge)
 		{
 			// The make challenge function should have set its own error message
@@ -222,7 +235,7 @@ class anubis_core
 
 		// The challenge string is more or less a fingerprint of the browser.
 		// Make sure it still matches
-		if ($payload['challenge'] !== $this->make_challenge())
+		if ($payload['challenge'] !== $this->make_challenge($payload['iat']))
 		{
 			return false;
 		}
@@ -237,7 +250,7 @@ class anubis_core
 	{
 		$time    = time();
 		$payload = json_encode([
-			'challenge' => $this->make_challenge(), // Challenge str from browser fingerprint
+			'challenge' => $this->make_challenge($time), // Challenge str from browser fingerprint
 			'exp'       => $time + $this->cookie_time, // Expiration, 1 week
 			'iat'       => $time,      // Issued
 			'nbf'       => $time - 60, // Not before

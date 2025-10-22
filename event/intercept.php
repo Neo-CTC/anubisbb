@@ -11,7 +11,6 @@
 namespace neodev\anubisbb\event;
 
 use neodev\anubisbb\core\anubis_core;
-use neodev\anubisbb\core\logger;
 use phpbb\cache\service as cache;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
@@ -51,7 +50,6 @@ class intercept implements EventSubscriberInterface
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
 	private $anubis;
-	private $logger;
 
 	public function __construct(user $user, template $template, request $request, config $config, controller_helper $helper, path_helper $path_helper, driver_interface $db, cache $cache)
 	{
@@ -67,7 +65,6 @@ class intercept implements EventSubscriberInterface
 		$this->cache = $cache;
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
-		$this->logger = new logger('Intercept', $path_helper->get_phpbb_root_path(), $user);
 	}
 
 	/**
@@ -148,14 +145,12 @@ END;
 		// Good cookie, stop here
 		if ($this->anubis->validate_cookie())
 		{
-			$this->logger->end('Bypassing, valid cookie');
 			return;
 		}
 
 		// Skip users and bots
 		if ($this->user->data['is_bot'] || $this->user->data['is_registered'])
 		{
-			$this->logger->end("Bypassing, user/bot ({$this->user->data['username']}/{$this->user->data['user_id']})");
 			return;
 		}
 
@@ -166,7 +161,6 @@ END;
 		}
 
 		// Kill the session to remove user from session table
-		$this->logger->log('Killing session');
 		$this->user->session_kill(false);
 
 		$root_path = $this->path_helper->get_web_root_path();
@@ -183,7 +177,6 @@ END;
 
 		// Fetch the challenge hash
 		$challenge = $this->anubis->make_challenge($timestamp);
-		$this->logger->log('Challenge created: ' . $challenge);
 		if (!$challenge)
 		{
 			// Problem making the challenge?
@@ -204,12 +197,10 @@ END;
 				'challenge'  => $challenge,
 				'timestamp'  => $timestamp,
 			]);
-			$this->logger->log('Difficulty set to ' . $this->config['anubisbb_difficulty']);
 			$this->template->set_filenames(['body' => '@neodev_anubisbb/make_challenge.html']);
 		}
 
 		// Have phpBB finalize the page
-		$this->logger->end('Sending challenge page');
 		page_footer();
 	}
 
@@ -278,7 +269,6 @@ END;
 				{
 					if (preg_match('~^/(?:cron|feed|anubis|user|help)(?:/|$)~', $route))
 					{
-						$this->logger->end('Skipping route');
 						return true;
 					}
 				}
@@ -295,7 +285,6 @@ END;
 
 				if ($mode == 'contactadmin')
 				{
-					$this->logger->end('Skipping contact page');
 					return true;
 				}
 			break;
@@ -313,7 +302,6 @@ END;
 				// but we do not grant you the rank of visitor
 				if (in_array($mode, ['privacy', 'terms']))
 				{
-					$this->logger->end('Skipping ucp, killing session');
 					$this->user->session_kill(false);
 					return true;
 				}
@@ -321,7 +309,6 @@ END;
 				// Ignore login pages
 				if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
 				{
-					$this->logger->end('Skipping ucp');
 					return true;
 				}
 			break;

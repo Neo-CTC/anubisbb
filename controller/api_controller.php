@@ -11,7 +11,6 @@
 namespace neodev\anubisbb\controller;
 
 use neodev\anubisbb\core\anubis_core;
-use neodev\anubisbb\core\logger;
 
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
@@ -38,11 +37,6 @@ class api_controller
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
 	private $anubis;
-	/**
-	 * @var \neodev\anubisbb\core\logger
-	 */
-	private $logger;
-
 
 	/**
 	 * @var string
@@ -82,7 +76,6 @@ class api_controller
 		$this->redirect      = '';
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
-		$this->logger = new logger('API', $path_helper->get_phpbb_root_path(),$user);
 	}
 
 	/**
@@ -94,29 +87,24 @@ class api_controller
 	 */
 	public function pass_challenge()
 	{
-		$this->logger->log('Challenge check page');
 		$redirect = $this->request->variable('redir', '');
 
 		if ($redirect === '')
 		{
-			$this->logger->log('Missing redirect');
 			return $this->build_error_page('Invalid request');
 		}
 
 		// Bad character test (control characters, backslash)
 		if (preg_match('/[\x00-\x1F\x5C]/',$redirect))
 		{
-			$this->logger->log('Bad characters in redirect');
 			return $this->build_error_page('Invalid request');
 		}
 
-		$this->logger->log('Redirect set to ' . $redirect);
 
 		// The redirect hostname must match that of the server
 		$url_parts = parse_url($redirect);
 		if ($url_parts === false || $url_parts['host'] !== $this->user->host)
 		{
-			$this->logger->log("Redirect host ({$url_parts['host']}) did not match server host ({$this->user->host})");
 			return $this->build_error_page('Invalid request');
 		}
 
@@ -133,7 +121,6 @@ class api_controller
 
 		if ($this->anubis->pass_challenge())
 		{
-			$this->logger->log('Challenge, pass');
 			$data = ['anubisbb_pass' => 1];
 			$sql = 'UPDATE ' . SESSIONS_TABLE . ' 
 				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
@@ -141,12 +128,10 @@ class api_controller
 			$this->db->sql_query($sql);
 
 			// TODO: test redirects, make sure we can't go offsite
-			$this->logger->end('Sending redirect');
 			redirect($redirect);
 		}
 		else
 		{
-			$this->logger->log('Challenge, fail');
 			return $this->build_error_page($this->anubis->error);
 		}
 	}
@@ -168,7 +153,6 @@ class api_controller
 
 		// Fetch the challenge hash
 		$challenge = $this->anubis->make_challenge($time);
-		$this->logger->log('Challenge created: ' . $challenge);
 		if (!$challenge)
 		{
 			// Problem making the challenge?
@@ -189,7 +173,6 @@ class api_controller
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
 			]);
-			$this->logger->log('Difficulty set to ' . $this->config['anubisbb_difficulty']);
 			return $this->controller_helper->render('@neodev_anubisbb/make_challenge.html');
 		}
 	}
@@ -203,7 +186,6 @@ class api_controller
 	 */
 	private function build_error_page($error_message)
 	{
-		$this->logger->end('Sending error page with message: '. $error_message);
 		$this->template->assign_vars([
 			'title'         => 'Oh noes!',
 			'error_message' => $error_message,

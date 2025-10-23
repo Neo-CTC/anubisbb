@@ -79,7 +79,7 @@ class intercept implements EventSubscriberInterface
 		if (
 			$this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) ||
 			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
-			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u', 0) > 1)
+			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u', 0, false, $this->request::COOKIE) > 1)
 		)
 		{
 			return;

@@ -15,9 +15,7 @@ use phpbb\cache\service as cache;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
-use phpbb\path_helper;
 use phpbb\request\request;
-use phpbb\template\template;
 use phpbb\user;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -38,11 +36,9 @@ class intercept implements EventSubscriberInterface
 	}
 
 	private $user;
-	private $template;
 	private $request;
 	private $config;
 	private $controller_helper;
-	private $path_helper;
 	private $db;
 	private $cache;
 
@@ -51,15 +47,13 @@ class intercept implements EventSubscriberInterface
 	 */
 	private $anubis;
 
-	public function __construct(user $user, template $template, request $request, config $config, controller_helper $helper, path_helper $path_helper, driver_interface $db, cache $cache)
+	public function __construct(user $user, request $request, config $config, controller_helper $helper, driver_interface $db, cache $cache)
 	{
-		$this->user     = $user;
-		$this->template = $template;
-		$this->request  = $request;
-		$this->config   = $config;
+		$this->user    = $user;
+		$this->request = $request;
+		$this->config  = $config;
 
 		$this->controller_helper = $helper;
-		$this->path_helper       = $path_helper;
 
 		$this->db    = $db;
 		$this->cache = $cache;
@@ -69,6 +63,7 @@ class intercept implements EventSubscriberInterface
 
 	/**
 	 * Intercepts the request as early as possible before a user session is created
+	 *
 	 * @return void
 	 */
 	public function early_intercept()
@@ -84,7 +79,7 @@ class intercept implements EventSubscriberInterface
 		if (
 			$this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) ||
 			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
-			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u',0) > 1)
+			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u', 0) > 1)
 		)
 		{
 			return;
@@ -110,32 +105,7 @@ class intercept implements EventSubscriberInterface
 			return;
 		}
 
-		$route = $this->controller_helper->route('neodev_anubisbb_make_challenge');
-		// $this->user->set_cookie('anubisbb_early','true', 0, false);
-
-		echo <<< END
-<html lang="en">
-<head>
-	<title>Loading...</title>
-</head>
-<body>
-<noscript>Javascript is required to continue</noscript>
-<a href="$route">Go</a>
-<script>
-const goto = (() => {
-	const u = new URL('$route', window.location.href);
-	u.searchParams.set('redir', window.location.href)
-	window.location = u.toString();
-})
-setTimeout(goto, 50)
-</script>
-</body>
-</html>
-END;
-
-		// Exit functions
-		garbage_collection();
-		exit_handler();
+		$this->intercept();
 	}
 
 	public function anubis_check()
@@ -163,45 +133,8 @@ END;
 		// Kill the session to remove user from session table
 		$this->user->session_kill(false);
 
-		$root_path = $this->path_helper->get_web_root_path();
-		$this->template->assign_var('root_path', $root_path);
-
-		// Paths for static files and the verification api
-		$this->template->assign_vars([
-			'static_path' => $root_path . 'ext/neodev/anubisbb/styles/all/theme/',
-			'route_path'  => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
-			'version'     => $this->anubis->version,
-		]);
-
-		$timestamp = time();
-
-		// Fetch the challenge hash
-		$challenge = $this->anubis->make_challenge($timestamp);
-		if (!$challenge)
-		{
-			// Problem making the challenge?
-			// TODO: log the error to phpBB
-			$this->template->assign_vars([
-				'title'         => 'Oh noes!',
-				'error_message' => $this->anubis->error,
-				'retry_link'    => build_url(), // Basically a link to the current url
-			]);
-			$this->template->set_filenames(['body' => '@neodev_anubisbb/failure_challenge.html']);
-		}
-		else
-		{
-			// Display challenge page
-			$this->template->assign_vars([
-				'title'      => 'Making sure you&#39;re not a bot!',
-				'difficulty' => $this->config['anubisbb_difficulty'],
-				'challenge'  => $challenge,
-				'timestamp'  => $timestamp,
-			]);
-			$this->template->set_filenames(['body' => '@neodev_anubisbb/make_challenge.html']);
-		}
-
-		// Have phpBB finalize the page
-		page_footer();
+		// Intercept request and send user to challenge page
+		$this->intercept();
 	}
 
 	public function logout($event)
@@ -244,75 +177,127 @@ END;
 		// Skip import pages
 		// Need to normalize the names due to weird paths for app.php and adm/index.php
 		$page_normalized = substr($page['page'], 0, strpos($page['page'], '.'));
-		switch ($page_normalized)
+
+		// Not early
+		if (!$early)
 		{
-			// Meh, should be fine
-			// Skip the administration zone
-			// case 'adm/index':
-			// 	return;
-			// break;
+			// When early intercept is off, allow important pages to bypass.
+			// Namely, the login and contact pages, plus a few others.
+			switch ($page_normalized)
+			{
+				// Meh, should be fine
+				// Skip the administration zone
+				// case 'adm/index':
+				// 	return;
+				// break;
 
-			// Deal with routed pages, aka app.php
-			case 'app':
+				// Deal with routed pages, aka app.php
+				case 'app':
 
-				// Grab the route
-				$route = substr($page['page_name'], strpos($page['page_name'], '/'));
+					// Grab the route
+					$route = substr($page['page_name'], strpos($page['page_name'], '/'));
 
-				// Everyone has access to the cron and feed routes
-				// user route is used for deleting cookies and forgotten passwords
-				// And of course don't block myself
-				if ($early && preg_match('~^/feed(?:/|$)~', $route))
-				{
-					return true;
-				}
-				else
-				{
+					// Everyone has access to the cron and feed routes
+					// user route is used for deleting cookies and forgotten passwords
+					// And of course don't block myself
 					if (preg_match('~^/(?:cron|feed|anubis|user|help)(?:/|$)~', $route))
 					{
 						return true;
 					}
-				}
-			break;
 
-			// Allow visitors to call for help
-			case 'memberlist':
-				if ($early)
-				{
-					return false;
-				}
+				break;
 
-				$mode = $this->request->variable('mode', '');
+				// Allow visitors to call for help
+				case 'memberlist':
+					$mode = $this->request->variable('mode', '');
 
-				if ($mode == 'contactadmin')
+					if ($mode == 'contactadmin')
+					{
+						return true;
+					}
+				break;
+
+				// Allow visitors to login
+				case 'ucp':
+					$mode = $this->request->variable('mode', '');
+
+					// You are on this site...
+					// but we do not grant you the rank of visitor
+					if (in_array($mode, ['privacy', 'terms']))
+					{
+						$this->user->session_kill(false);
+						return true;
+					}
+
+					// Ignore login pages
+					if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
+					{
+						return true;
+					}
+				break;
+			}
+		}
+		// Early
+		else
+		{
+			// When early intercept is on, only pages meant for bots can bypass.
+			// So far there's only one path that's for bots and that's the RSS feeds, and of course myself.
+			if ($page_normalized === 'app')
+			{
+				// Grab the route
+				$route = substr($page['page_name'], strpos($page['page_name'], '/'));
+				if (preg_match('~^/(?:feed(?:/|$)|anubis/api/)~', $route))
 				{
 					return true;
 				}
-			break;
-
-			// Allow visitors to login
-			case 'ucp':
-				if ($early)
-				{
-					return false;
-				}
-
-				$mode = $this->request->variable('mode', '');
-
-				// You are on this site...
-				// but we do not grant you the rank of visitor
-				if (in_array($mode, ['privacy', 'terms']))
-				{
-					$this->user->session_kill(false);
-					return true;
-				}
-
-				// Ignore login pages
-				if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
-				{
-					return true;
-				}
-			break;
+			}
 		}
 		return false;
+	}
+
+	private function intercept()
+	{
+		$route = $this->controller_helper->route('neodev_anubisbb_make_challenge');
+
+		echo <<< END
+<html lang="en">
+<head>
+	<title>Loading...</title>
+	<style>
+		body{background: #f9f5d7;margin: 0}
+		.box{display: grid;height: 100vh;place-items: center}
+		.spinner{margin:auto;height:40px;text-align:center;font-size:10px}
+		.spinner>div{background-color:#333;height:100%;width:6px;display:inline-block;animation:sk-stretchdelay 1.2s infinite ease-in-out}
+		.spinner>div:nth-child(even){margin:0 3px}
+		.spinner .rect2{animation-delay:-1.1s}
+		.spinner .rect3{animation-delay:-1s}
+		.spinner .rect4{animation-delay:-.9s}
+		.spinner .rect5{animation-delay:-.8s}
+		@keyframes sk-stretchdelay{0%,100%,40%{transform:scaleY(.4)}20%{transform:scaleY(1)}}
+	</style>
+</head>
+<body>
+<div class="box">
+	<div>
+		<div class="spinner">
+			<div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div>
+		</div>
+		Loading<noscript><br><a href="$route">Click to continue</a></noscript>
+	</div>
+</div>
+<script>
+	const goto=(() => {
+		const u = new URL('$route', window.location.href);
+		u.searchParams.set('redir', window.location.href);
+		window.location.assign(u.toString());
+	});
+	setTimeout(goto,500)
+</script>
+</body>
+</html>
+END;
+		// Exit functions
+		garbage_collection();
+		exit_handler();
 	}
 }

@@ -24,11 +24,9 @@ services:
         class: neodev\anubisbb\event\intercept
         arguments:
             - '@user'
-            - '@template'
             - '@request'
             - '@config'
             - '@controller.helper'
-            - '@path_helper'
             - '@dbal.conn'
             - '@cache'
         tags:

@@ -139,6 +139,11 @@ class api_controller
 	public function make_challenge()
 	{
 		$this->user->session_kill(false);
+
+		// Set a cookie to bypass the early intercept allowing access to log in and contact pages.
+		// Todo: remove this when we ever figure out a non JS solution
+		$this->user->set_cookie('anubisbb_early','true', 0, false);
+
 		$root_path = $this->web_root_path;
 		$this->template->assign_var('root_path', $root_path);
 

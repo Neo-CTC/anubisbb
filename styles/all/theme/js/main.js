@@ -233,7 +233,7 @@ const dependencies = [
 
       setTimeout(() => {
         window.location.assign(goto);
-      }, 10000);
+      }, 1000);
     }
 
   } catch (err) {

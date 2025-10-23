@@ -55,6 +55,16 @@
 				<input id="setting_early" type="checkbox" class="radio" name="early" value="1" {% if CONFIG_EARLY %} checked{% endif %}>
 			</dd>
 		</dl>
+
+		<dl>
+			<dt>
+				<label for="setting_hot_linking">{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_hot_linking" type="checkbox" class="radio" name="hot_linking" value="1" {% if CONFIG_HOT_LINKING %} checked{% endif %}>
+			</dd>
+		</dl>
 	</fieldset>
 
 	<fieldset>

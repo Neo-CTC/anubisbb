@@ -104,11 +104,17 @@ class acp_controller
 				$t = ($t >= 300 && $t <= 34186670) ? $t : 604800;
 				$this->config->set('anubisbb_ctime', $t);
 
-				$s = $this->request->variable('strict_cookies', 1);
-				$this->config->set('anubisbb_strict_cookies', $s !== 0 ? 1 : 0);
+				$s = $this->request->variable('strict_cookies', true);
+				$this->config->set('anubisbb_strict_cookies', $s);
 
-				$e = $this->request->variable('early', 0);
-				$this->config->set('anubisbb_early', $e !== 0 ? 1 : 0);
+				$e = $this->request->variable('early', false);
+				$this->config->set('anubisbb_early', $e);
+
+				$h = $this->request->variable('hot_linking', false);
+				$this->config->set('anubisbb_hot_linking', $h);
+
+				// Hmmm... probably a better way than single use variables.
+				unset($d, $t, $s, $e, $h);
 
 
 				// Add option settings change action to the admin log
@@ -129,10 +135,11 @@ class acp_controller
 
 			'U_ACTION' => $this->u_action,
 
-			'CONFIG_DIFFICULTY' => $this->config['anubisbb_difficulty'],
-			'CONFIG_TIME'       => $this->config['anubisbb_ctime'],
-			'CONFIG_STRICT'     => $this->config['anubisbb_strict_cookies'],
-			'CONFIG_EARLY'      => $this->config['anubisbb_early'],
+			'CONFIG_DIFFICULTY'  => $this->config['anubisbb_difficulty'],
+			'CONFIG_TIME'        => $this->config['anubisbb_ctime'],
+			'CONFIG_STRICT'      => $this->config['anubisbb_strict_cookies'],
+			'CONFIG_EARLY'       => $this->config['anubisbb_early'],
+			'CONFIG_HOT_LINKING' => $this->config['anubisbb_hot_linking'],
 		]);
 		// TODO: exclude paths
 	}

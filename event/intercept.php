@@ -235,6 +235,12 @@ class intercept implements EventSubscriberInterface
 						return true;
 					}
 				break;
+
+				case 'download/file':
+					if ($this->config['anubisbb_hot_linking'] === '1')
+					{
+						return true;
+					}
 			}
 		}
 		// Early
@@ -242,14 +248,24 @@ class intercept implements EventSubscriberInterface
 		{
 			// When early intercept is on, only pages meant for bots can bypass.
 			// So far there's only one path that's for bots and that's the RSS feeds, and of course myself.
-			if ($page_normalized === 'app')
+			// And file downloads when hot linking is allowed
+			switch ($page_normalized)
 			{
-				// Grab the route
-				$route = substr($page['page_name'], strpos($page['page_name'], '/'));
-				if (preg_match('~^/(?:feed(?:/|$)|anubis/api/)~', $route))
-				{
-					return true;
-				}
+				case 'app':
+					// Grab the route
+					$route = substr($page['page_name'], strpos($page['page_name'], '/'));
+					if (preg_match('~^/(?:feed(?:/|$)|anubis/api/)~', $route))
+					{
+						return true;
+					}
+				break;
+
+				case 'download/file':
+					if ($this->config['anubisbb_hot_linking'] === '1')
+					{
+						return true;
+					}
+				break;
 			}
 		}
 		return false;

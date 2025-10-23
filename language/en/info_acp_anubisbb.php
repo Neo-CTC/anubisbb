@@ -52,6 +52,9 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_EARLY'         => 'Early intercept',
 	'ACP_ANUBISBB_SETTINGS_EARLY_EXPLAIN' => 'Run a simple script before all phpBB pages. This adds protection to the login and contact pages but may cause issues.',
 
+	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
+	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachment & avatars). This allows visitors to view files without passing a challenge both onsite and offsite (hot linking).',
+
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE'   => 'Secret Key',
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY'         => 'Regenerate secret key',
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY_EXPLAIN' => 'Creates a new secret key. This will invalidate all access tokens.',

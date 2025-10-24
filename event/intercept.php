@@ -277,9 +277,7 @@ class intercept implements EventSubscriberInterface
 
 		// Prevent an infinite loop: don't cache the "Loading..." redirect to Anubis.
 		// Otherwise the user will keep being sent back to Anubis, even after they have a valid cookie.
-		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-		header('Pragma: no-cache');
-		header('Expires: 0');
+		header('Cache-Control: no-store');
 
 		echo <<< END
 <html lang="en">

@@ -11,6 +11,8 @@
 namespace neodev\anubisbb\event;
 
 use neodev\anubisbb\core\anubis_core;
+use neodev\anubisbb\core\logger;
+
 use phpbb\cache\service as cache;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
@@ -46,6 +48,7 @@ class intercept implements EventSubscriberInterface
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
 	private $anubis;
+	private $logger;
 
 	public function __construct(user $user, request $request, config $config, controller_helper $helper, driver_interface $db, cache $cache)
 	{
@@ -59,6 +62,7 @@ class intercept implements EventSubscriberInterface
 		$this->cache = $cache;
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->logger = new logger($this->config, $this->user);
 	}
 
 	/**
@@ -73,6 +77,16 @@ class intercept implements EventSubscriberInterface
 			return;
 		}
 
+		// Preload user variable with basic data
+		$this->user->browser = $this->request->header('User-Agent', '-');
+
+		global $phpbb_root_path;
+		$this->user->page = $this->user->extract_current_page($phpbb_root_path);
+		// The ip address code in session.php is far more complex than this, but we
+		// just need it for logging... so it should be okay?
+		// TODO: revisit and bring inline with phpBB's ip code
+		$this->user->ip = $this->request->server('REMOTE_ADDR', '-');
+
 		// Cookie check
 		// Look for anubis cookies or user cookie
 		$cookie_name = $this->config['cookie_name'];
@@ -86,25 +100,22 @@ class intercept implements EventSubscriberInterface
 		}
 
 		// Bot check, from phpbb/session.php
-		$ua          = $this->request->header('User-Agent');
 		$active_bots = $this->cache->obtain_bots();
 		foreach ($active_bots as $row)
 		{
-			if ($row['bot_agent'] && preg_match('#' . str_replace('\*', '.*?', preg_quote($row['bot_agent'], '#')) . '#i', $ua))
+			if ($row['bot_agent'] && preg_match('#' . str_replace('\*', '.*?', preg_quote($row['bot_agent'], '#')) . '#i', $this->user->browser))
 			{
 				return;
 			}
 		}
 
 		// Path check
-		// Grab current url
-		global $phpbb_root_path;
-		$page = $this->user::extract_current_page($phpbb_root_path);
-		if ($this->skip_path($page, true))
+		if ($this->skip_path(true))
 		{
 			return;
 		}
 
+		$this->logger->log('Intercept (early)');
 		$this->intercept();
 	}
 
@@ -134,6 +145,7 @@ class intercept implements EventSubscriberInterface
 		$this->user->session_kill(false);
 
 		// Intercept request and send user to challenge page
+		$this->logger->log('Intercept');
 		$this->intercept();
 	}
 
@@ -172,11 +184,11 @@ class intercept implements EventSubscriberInterface
 		$this->db->sql_query($sql);
 	}
 
-	private function skip_path($page, $early = false)
+	private function skip_path($early = false)
 	{
 		// Skip import pages
 		// Need to normalize the names due to weird paths for app.php and adm/index.php
-		$page_normalized = substr($page['page'], 0, strpos($page['page'], '.'));
+		$page_normalized = substr($this->user->page['page'], 0, strpos($this->user->page['page'], '.'));
 
 		// Not early
 		if (!$early)
@@ -195,7 +207,7 @@ class intercept implements EventSubscriberInterface
 				case 'app':
 
 					// Grab the route
-					$route = substr($page['page_name'], strpos($page['page_name'], '/'));
+					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
 
 					// Everyone has access to the cron and feed routes
 					// user route is used for deleting cookies and forgotten passwords
@@ -253,7 +265,7 @@ class intercept implements EventSubscriberInterface
 			{
 				case 'app':
 					// Grab the route
-					$route = substr($page['page_name'], strpos($page['page_name'], '/'));
+					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
 					if (preg_match('~^/(?:feed(?:/|$)|anubis/api/)~', $route))
 					{
 						return true;

@@ -11,6 +11,7 @@
 namespace neodev\anubisbb\controller;
 
 use neodev\anubisbb\core\anubis_core;
+use neodev\anubisbb\core\logger;
 
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
@@ -37,6 +38,7 @@ class api_controller
 	 * @var \neodev\anubisbb\core\anubis_core
 	 */
 	private $anubis;
+	private $logger;
 
 	/**
 	 * @var string
@@ -76,6 +78,7 @@ class api_controller
 		$this->redirect      = '';
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->logger = new logger($this->config, $this->user);
 	}
 
 	/**
@@ -91,12 +94,14 @@ class api_controller
 
 		if ($redirect === '')
 		{
+			$this->logger->log('Error: missing redirect');
 			return $this->build_error_page('Invalid request');
 		}
 
 		// Bad character test (control characters, backslash)
 		if (preg_match('/[\x00-\x1F\x5C]/',$redirect))
 		{
+			$this->logger->log('Error: invalid redirect');
 			return $this->build_error_page('Invalid request');
 		}
 
@@ -105,6 +110,7 @@ class api_controller
 		$url_parts = parse_url($redirect);
 		if ($url_parts === false || $url_parts['host'] !== $this->user->host)
 		{
+			$this->logger->log('Error: offsite redirect');
 			return $this->build_error_page('Invalid request');
 		}
 
@@ -128,11 +134,13 @@ class api_controller
 			$this->db->sql_query($sql);
 
 			// TODO: test redirects, make sure we can't go offsite
+			$this->logger->log('Pass');
 			redirect($redirect);
 		}
 		else
 		{
-			return $this->build_error_page($this->anubis->error);
+			$this->logger->log('Fail: ' . $this->anubis->error);
+			return $this->build_error_page('Invalid request');
 		}
 	}
 
@@ -170,6 +178,7 @@ class api_controller
 				'error_message' => $this->anubis->error,
 				'retry_link'    => build_url(), // Basically a link to the current url
 			]);
+			$this->logger->log('Error: '.$this->anubis->error);
 			return $this->controller_helper->render('@neodev_anubisbb/failure_challenge.html');
 		}
 		else
@@ -181,6 +190,7 @@ class api_controller
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
 			]);
+			$this->logger->log('Challenge');
 			return $this->controller_helper->render('@neodev_anubisbb/make_challenge.html');
 		}
 	}

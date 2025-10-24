@@ -10,8 +10,6 @@
 
 namespace neodev\anubisbb\core;
 
-use DateTime;
-use DateTimeZone;
 use phpbb\config\config;
 use phpbb\request\request;
 use phpbb\request\request_interface;
@@ -123,19 +121,19 @@ class anubis_core
 		$response = $this->request->variable('response', '');
 		if (!$response)
 		{
-			$this->error = 'Invalid request';
+			$this->error = 'Missing response';
 			return false;
 		}
 
 		$nonce = $this->request->variable('nonce', 0);
 		if (!$nonce)
 		{
-			$this->error = 'Invalid request';
+			$this->error = 'Missing nonce';
 			return false;
 		}
 
 		$timestamp = $this->request->variable('timestamp', 0);
-		$time = time();
+		$time      = time();
 
 		// Timestamp can't be in the future nor older than 10 minutes
 		if ($timestamp > $time || $timestamp < $time - 600)

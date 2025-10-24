@@ -157,7 +157,7 @@ class intercept implements EventSubscriberInterface
 			$this->anubis->logout_cookie();
 
 			$data = ['anubisbb_pass' => 1];
-			$sql  = 'UPDATE ' . SESSIONS_TABLE . ' 
+			$sql  = 'UPDATE ' . SESSIONS_TABLE . '
 				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
 				WHERE session_id = "' . $this->user->data['session_id'] . '"';
 			$this->db->sql_query($sql);
@@ -274,6 +274,12 @@ class intercept implements EventSubscriberInterface
 	private function intercept()
 	{
 		$route = $this->controller_helper->route('neodev_anubisbb_make_challenge');
+
+		// Prevent an infinite loop: don't cache the "Loading..." redirect to Anubis.
+		// Otherwise the user will keep being sent back to Anubis, even after they have a valid cookie.
+		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		header('Pragma: no-cache');
+		header('Expires: 0');
 
 		echo <<< END
 <html lang="en">

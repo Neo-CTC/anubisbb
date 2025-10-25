@@ -19,16 +19,12 @@ class logger
 	private $config;
 	private $user;
 	private $enabled;
-	private $log_file;
 
 	public function __construct(config $config, user $user)
 	{
 		$this->config  = $config;
 		$this->user    = $user;
-
-		$this->config->set('anubisbb_log_enabled', '1');
 		$this->enabled  = $this->config['anubisbb_log_enabled'];
-		$this->log_file = '';
 	}
 
 	// TODO: log level
@@ -39,21 +35,33 @@ class logger
 			return;
 		}
 
-		$message = ' "' . $message . '"';
-		$message = date('(Y-m-d H:i:s) ') . $this->user->ip . $message . " \n";
+		$log_line = [
+			date('Y-m-d H:i:s'),
+			$this->user->ip,
+			$message,
+		];
 
-		$path = $this->config['anubisbb_log_path'];
-		if ($path === '')
-		{
-			global $phpbb_root_path;
-			$path = $phpbb_root_path . 'store/anubisbb/log/';
-			$this->config->set('anubisbb_log_path', $path);
-		}
+		global $phpbb_root_path;
+		$path = $phpbb_root_path . 'store/anubisbb/log/';
+
 		if (!file_exists($path))
 		{
 			mkdir($path, 0770, true);
 		}
-		$this->log_file = $path . 'anubis_log-' . date('Ymd');
-		file_put_contents($this->log_file, $message, FILE_APPEND);
+		$log_file = fopen($path . 'request_log-' . date('Ymd'), 'a');
+		if ($log_file === false)
+		{
+			return;
+		}
+
+		// Lock the file, so we can handle multiple requests without collisions
+		// Technically writes less than 4kB are atomic and don't need locking but just in case...
+		flock($log_file, LOCK_EX);
+
+		// Write in csv format for easy retrieval later
+		fputcsv($log_file, $log_line);
+
+		flock($log_file,LOCK_UN);
+		fclose($log_file);
 	}
 }

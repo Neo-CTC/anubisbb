@@ -53,7 +53,10 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_EARLY_EXPLAIN' => 'Run a simple script before all phpBB pages. This adds protection to the login and contact pages but may cause issues.',
 
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
-	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachment & avatars). This allows visitors to view files without passing a challenge both onsite and offsite (hot linking).',
+	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachments). This allows visitors to view these files without passing a challenge both onsite and offsite (hot linking).',
+
+	'ACP_ANUBISBB_SETTINGS_LOG_ENABLE' => 'Enable logging',
+	'ACP_ANUBISBB_SETTINGS_LOG_EXPLAIN' => 'Log files are saved under (path to phpBB)/store/anubisbb/log.',
 
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE'   => 'Secret Key',
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY'         => 'Regenerate secret key',

@@ -65,6 +65,16 @@
 				<input id="setting_hot_linking" type="checkbox" class="radio" name="hot_linking" value="1" {% if CONFIG_HOT_LINKING %} checked{% endif %}>
 			</dd>
 		</dl>
+
+		<dl>
+			<dt>
+				<label for="setting_log_enable">{{ lang('ACP_ANUBISBB_SETTINGS_LOG_ENABLE') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_LOG_ENABLE_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_log_enable" type="checkbox" class="radio" name="log_enable" value="1" {% if CONFIG_LOG_ENABLE %} checked{% endif %}>
+			</dd>
+		</dl>
 	</fieldset>
 
 	<fieldset>

@@ -161,7 +161,7 @@ class anubis_core
 
 		if (substr($challenge_hash, 0, $this->difficulty) !== str_repeat('0', $this->difficulty))
 		{
-			$this->error = 'Invalid hash';
+			$this->error = 'Wrong hash';
 			return false;
 		}
 

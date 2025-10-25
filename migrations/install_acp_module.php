@@ -16,7 +16,7 @@ class install_acp_module extends migration
 {
 	public function effectively_installed()
 	{
-		return isset($this->config['neodev_anubisbb_early']);
+		return isset($this->config['anubisbb_hot_linking']);
 	}
 
 	public static function depends_on()

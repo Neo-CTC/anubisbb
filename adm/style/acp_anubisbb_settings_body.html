@@ -9,6 +9,21 @@
 	</div>
 {% endif %}
 
+<fieldset>
+	<legend>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE') }}</legend>
+	<form id="neodev_anubisbb_acp_sk" name="sk_form" method="post" action="{{ U_ACTION }}">
+		<dl>
+			<dt>
+				<label for="sk_submit">{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="sk_submit" class="button2" type="submit" name="sk_submit" value="{{ lang('RUN') }}">
+			</dd>
+		</dl>
+	</form>
+</fieldset>
+
 <form id="neodev_anubisbb_acp" name="neodev_anubisbb_acp" method="post" action="{{ U_ACTION }}">
 
 	<fieldset>
@@ -23,7 +38,6 @@
 			</dd>
 		</dl>
 		<dl>
-
 			<dt>
 				<label for="setting_time">{{ lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME') }}</label><br>
 				<span>{{ lang('ACP_ANUBISBB_SETTINGS_COOKIE_TIME_EXPLAIN') }}</span>
@@ -65,33 +79,45 @@
 				<input id="setting_hot_linking" type="checkbox" class="radio" name="hot_linking" value="1" {% if CONFIG_HOT_LINKING %} checked{% endif %}>
 			</dd>
 		</dl>
+	</fieldset>
 
+	<fieldset>
+		<legend>{{ lang('ACP_LOGGING') }}</legend>
 		<dl>
 			<dt>
 				<label for="setting_log_enable">{{ lang('ACP_ANUBISBB_SETTINGS_LOG_ENABLE') }}</label><br>
-				<span>{{ lang('ACP_ANUBISBB_SETTINGS_LOG_ENABLE_EXPLAIN') }}</span>
 			</dt>
 			<dd>
 				<input id="setting_log_enable" type="checkbox" class="radio" name="log_enable" value="1" {% if CONFIG_LOG_ENABLE %} checked{% endif %}>
 			</dd>
 		</dl>
-	</fieldset>
 
-	<fieldset>
-		<legend>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE') }}</legend>
 		<dl>
 			<dt>
-				<label for="setting_early">{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY') }}</label><br>
-				<span>{{ lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_EXPLAIN') }}</span>
+				<label for="setting_log_path">{{ lang('ACP_ANUBISBB_SETTINGS_LOG_PATH') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_LOG_PATH_EXPLAIN') }}</span>
 			</dt>
 			<dd>
-				<input class="button2" type="submit" id="submit" name="sk_submit" value="{{ lang('RUN') }}">
+				<input id="setting_log_path" type="text" name="log_path" value="{{ CONFIG_LOG_PATH }}">
+			</dd>
+		</dl>
+
+		<dl>
+			<dt>
+				<label for="setting_log_rotate_max">{{ lang('ACP_ANUBISBB_SETTINGS_LOG_ROTATE_MAX') }}</label><br>
+			</dt>
+			<dd>
+				<input id="setting_log_rotate_max" type="number" min="1" max="365" step="1" name="log_rotate_max" value="{{ CONFIG_LOG_ROTATE_MAX }}">
 			</dd>
 		</dl>
 	</fieldset>
 
-	<fieldset class="submit-buttons">
-		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}">
+	<fieldset>
+		<legend>{{ lang('ACP_SUBMIT_CHANGES') }}</legend>
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}">&nbsp;
+			<input class="button2" type="reset" id="reset" name="reset" value="{{ lang('RESET') }}">
+		</p>
 		{{ S_FORM_TOKEN }}
 	</fieldset>
 

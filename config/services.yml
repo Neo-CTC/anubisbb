@@ -31,3 +31,12 @@ services:
             - '@cache'
         tags:
             - { name: event.listener }
+
+    neodev.anubisbb.cron.task.logrotate:
+        class: neodev\anubisbb\cron\task\logrotate
+        arguments:
+            - '@config'
+        calls:
+            - [set_name, [cron.task.neodev.anubisbb.logrotate]]
+        tags:
+            - { name: cron.task }

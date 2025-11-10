@@ -24,7 +24,7 @@ class logger
 	{
 		$this->config  = $config;
 		$this->user    = $user;
-		$this->enabled  = $this->config['anubisbb_log_enabled'];
+		$this->enabled = $this->config['anubisbb_log_enabled'];
 	}
 
 	// TODO: log level
@@ -41,14 +41,19 @@ class logger
 			$message,
 		];
 
-		global $phpbb_root_path;
-		$path = $phpbb_root_path . 'store/anubisbb/log/';
-
-		if (!file_exists($path))
+		$path = $this->config['anubisbb_log_path'];
+		if ($path[0] !== '/')
 		{
-			mkdir($path, 0770, true);
+			global $phpbb_root_path;
+			$path = $phpbb_root_path . $path;
 		}
-		$log_file = fopen($path . 'request_log-' . date('Ymd'), 'a');
+
+		if (!file_exists($path) || !is_writeable($path))
+		{
+			return;
+		}
+
+		$log_file = fopen($path . 'anubis_log-' . date('Ymd'), 'a');
 		if ($log_file === false)
 		{
 			return;
@@ -61,7 +66,7 @@ class logger
 		// Write in csv format for easy retrieval later
 		fputcsv($log_file, $log_line);
 
-		flock($log_file,LOCK_UN);
+		flock($log_file, LOCK_UN);
 		fclose($log_file);
 	}
 }

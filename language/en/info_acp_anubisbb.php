@@ -55,8 +55,13 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachments). This allows visitors to view these files without passing a challenge both onsite and offsite (hot linking).',
 
-	'ACP_ANUBISBB_SETTINGS_LOG_ENABLE' => 'Enable logging',
-	'ACP_ANUBISBB_SETTINGS_LOG_EXPLAIN' => 'Log files are saved under (path to phpBB)/store/anubisbb/log.',
+	'ACP_ANUBISBB_SETTINGS_LOG_ENABLE'     => 'Enable logging',
+	'ACP_ANUBISBB_SETTINGS_LOG_ROTATE_MAX' => 'Number of log files to keep',
+
+	'ACP_ANUBISBB_SETTINGS_LOG_PATH'           => 'Storage path for log files',
+	'ACP_ANUBISBB_SETTINGS_LOG_PATH_EXPLAIN'   => 'Default path is store/anubisbb/',
+	'ACP_ANUBISBB_SETTINGS_LOG_PATH_INVALID'   => 'Log path is invalid',
+	'ACP_ANUBISBB_SETTINGS_LOG_PATH_MAKE_FAIL' => 'Could not create default log path',
 
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY_TITLE'   => 'Secret Key',
 	'ACP_ANUBISBB_SETTINGS_SECRET_KEY'         => 'Regenerate secret key',

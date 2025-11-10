@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<title>{{ title }}</title>
-	<link rel="stylesheet" href="{{ static_path }}xess.css">
+	<link rel="stylesheet" href="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/xess.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="robots" content="noindex,nofollow">
 	<meta charset="UTF-8">
@@ -48,9 +48,9 @@
 	<script id="anubis_settings" type="application/json">
 {
 	"version":"{{ version }}",
-	"static_prefix":"{{ static_path }}",
+	"static_prefix":"{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/",
 	"route_prefix":"{{ route_path}}",
-	"root_path":"{{ root_path }}"
+	"root_path":"{{ ROOT_PATH }}"
 }
 </script>
 	{% if challenge %}

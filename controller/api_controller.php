@@ -49,10 +49,6 @@ class api_controller
 	 */
 	private $request;
 	/**
-	 * @var \phpbb\path_helper
-	 */
-	private $web_root_path;
-	/**
 	 * @var \phpbb\user
 	 */
 	private $user;
@@ -74,7 +70,6 @@ class api_controller
 		$this->template      = $template;
 		$this->user          = $user;
 		$this->db            = $db;
-		$this->web_root_path = $path_helper->get_web_root_path();
 		$this->redirect      = '';
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
@@ -154,15 +149,10 @@ class api_controller
 		{
 			$this->user->set_cookie('anubisbb_early', 'true', 0, false);
 		}
-
-		$root_path = $this->web_root_path;
-		$this->template->assign_var('root_path', $root_path);
-
 		$time = time();
 
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
-			'static_path' => $root_path . 'ext/neodev/anubisbb/styles/all/theme/',
 			'route_path'  => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
 			'version'     => $this->anubis->version,
 		]);
@@ -207,8 +197,6 @@ class api_controller
 		$this->template->assign_vars([
 			'title'         => 'Oh noes!',
 			'error_message' => $error_message,
-			'static_path'   => $this->web_root_path . 'ext/neodev/anubisbb/styles/all/theme/',
-			'contact'       => $this->web_root_path . 'memberlist.php?mode=contactadmin',
 			// TODO: test this. it should lead to the same page the visitor was just at. Which should allow them to retry the challenge.
 			'retry_link'    => $this->redirect,
 		]);
@@ -219,10 +207,7 @@ class api_controller
 
 	public function benchmark()
 	{
-		$this->template->assign_vars([
-			'title'       => 'Speed test',
-			'static_path' => $this->web_root_path . 'ext/neodev/anubisbb/styles/all/theme/',
-		]);
+		$this->template->assign_var('title','Speed test');
 		return $this->controller_helper->render('@neodev_anubisbb/benchmark.html');
 	}
 }

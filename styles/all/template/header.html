@@ -25,6 +25,12 @@
 			font-variant-numeric: tabular-nums;
 		}
 
+		@supports not (width: min(20rem, 90%)) {
+			#progress {
+				width: 80%;
+			}
+		}
+
 		#progress {
 			display: none;
 			width: min(20rem, 90%);
@@ -46,15 +52,16 @@
 		}
 	</style>
 	<script id="anubis_settings" type="application/json">
-{
-	"version":"{{ version }}",
-	"static_prefix":"{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/",
-	"route_prefix":"{{ route_path}}",
-	"root_path":"{{ ROOT_PATH }}"
-}
-</script>
+	{
+		"version":"{{ version }}",
+		"static_prefix":"{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/",
+		"route_prefix":"{{ route_path}}",
+		"root_path":"{{ ROOT_PATH }}"
+	}
+	</script>
 	{% if challenge %}
-		<script id="challenge" type="application/json">{
+	<script id="challenge" type="application/json">
+	{
 		"challenge": "{{ challenge }}",
 		"timestamp":"{{ timestamp }}",
 		"rules": {
@@ -62,7 +69,8 @@
 			"report_as": "{{ difficulty }}",
 			"algorithm": "fast"
 		}
-	}</script>
+	}
+	</script>
 	{% endif %}
 </head>
 <body id="top">

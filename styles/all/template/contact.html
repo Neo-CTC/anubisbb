@@ -1,0 +1,36 @@
+{% include "@neodev_anubisbb/header.html" %}
+<div class="centered-div">
+	<form method="post">
+		<h1>Contact</h1>
+		<table style="margin: auto;padding: 10px;">
+			<tr>
+				<td style="text-align: left">
+					<label for="name">Name</label>
+				</td>
+				<td>
+					<input id="name" type="text" name="username">
+				</td>
+			</tr>
+			<tr>
+				<td style="text-align: left">
+					<label for="email">Email</label>
+				</td>
+				<td>
+					<input id="email" type="email" name="email">
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="text-align: left">
+					<label for="message" >Message</label>
+					<textarea id="message" rows="6" style="width: 100%;"></textarea>
+				</td>
+			</tr>
+		</table>
+		<input type="hidden" name="time" value="{{ timestamp }}">
+		<input type="hidden" name="token" value="{{ token }}">
+		<input type="submit">
+	</form>
+
+	<p><a href="{{ ROOT_PATH }}index.php">Home</a> | <a href="{{ login }}">Login</a> | Contact</p>
+</div>
+{% include "@neodev_anubisbb/footer.html" %}

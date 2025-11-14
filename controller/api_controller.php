@@ -134,6 +134,7 @@ class api_controller
 		}
 		else
 		{
+			// TODO: kill sessions for pass as well on failure
 			$this->logger->log('Fail: ' . $this->anubis->error);
 			return $this->build_error_page('Invalid request');
 		}
@@ -169,7 +170,7 @@ class api_controller
 				'retry_link'    => build_url(), // Basically a link to the current url
 			]);
 			$this->logger->log('Error: '.$this->anubis->error);
-			return $this->controller_helper->render('@neodev_anubisbb/failure_challenge.html');
+			return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');
 		}
 		else
 		{

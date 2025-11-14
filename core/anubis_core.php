@@ -20,7 +20,7 @@ class anubis_core
 {
 	public $error;
 	public $version;
-	private $cookie_name;
+	public $cookie_name;
 	private $cookie_time;
 
 	private $config;
@@ -76,6 +76,7 @@ class anubis_core
 	 */
 	public function make_challenge($time)
 	{
+		// TODO: add in hmac somewhere
 		$ip      = $this->user->ip;
 		$browser = $this->user->browser;
 		if (!$browser)
@@ -83,20 +84,6 @@ class anubis_core
 			$this->error = 'Missing User-Agent header';
 			return false;
 		}
-
-		// // Anubis rounds the time to the nearest week, a.k.a. the nearest Monday
-		// $monday = new DateTime('now', new DateTimeZone('UTC'));
-		// $monday->modify((getdate()['wday'] !== 1 ? 'last' : 'this') . ' monday');
-		//
-		// // Half a week is 3.5 days or 302400 seconds
-		// if (time() - $monday->getTimestamp() >= 302400)
-		// {
-		// 	$monday = new DateTime('now', new DateTimeZone('UTC'));
-		// 	$monday->modify('next monday');
-		// }
-		// // RFC3339 format but with a Z
-		// $time = $monday->format('Y-m-d\TH:i:s\Z');
-		// Time or time?
 
 		$fingerprint = hash('sha256', $this->secret_key);
 
@@ -193,34 +180,16 @@ class anubis_core
 	{
 		// JSON Web Token
 		$jwt = $this->request->variable($this->cookie_name, '', true, request_interface::COOKIE);
-
-		// Split the token into payload and signature
-		$token = explode('.', $jwt);
-
-		// Decode the signature back to bytes
-		$sig = $this->b64_decode_url($token[1]);
-
-		// Grab the public key from the secret key
-		$public_key = substr($this->secret_key, SODIUM_CRYPTO_SIGN_SEEDBYTES);
-
-		// Validate the signed string
-		try
-		{
-			if (!sodium_crypto_sign_verify_detached($sig, $token[0], $public_key))
-			{
-				return false;
-			}
-		}
-		catch (SodiumException $e)
+		if (!$jwt)
 		{
 			return false;
 		}
 
-		// Unpack the cookie
-		$payload = json_decode($this->b64_decode_url($token[0]), true);
+		// Unpack the cookie and grab the challenge hash
+		$payload = $this->jwt_unpack($jwt);
 
-		// Ignore stale cookies
-		if ($payload['exp'] < time() || time() < $payload['nbf'])
+		// Bad cookie
+		if ($payload === false)
 		{
 			return false;
 		}
@@ -233,12 +202,7 @@ class anubis_core
 
 		// The challenge string is more or less a fingerprint of the browser.
 		// Make sure it still matches
-		if ($payload['challenge'] !== $this->make_challenge($payload['iat']))
-		{
-			return false;
-		}
-
-		return true;
+		return hash_equals($this->make_challenge($payload['iat']), $payload['data']);
 	}
 
 	/**
@@ -247,36 +211,18 @@ class anubis_core
 	private function bake_cookie()
 	{
 		$time    = time();
-		$payload = json_encode([
-			'challenge' => $this->make_challenge($time), // Challenge str from browser fingerprint
-			'exp'       => $time + $this->cookie_time, // Expiration, 1 week
-			'iat'       => $time,      // Issued
-			'nbf'       => $time - 60, // Not before
+		$expires = $time + $this->cookie_time;
+		$payload = $this->make_challenge($time);
 
-			// Unused
-			// "nonce"     => $nonce,
-			// "response"  => $response,
-		]);
-
-		// Encode the token
-		$jwt = $this->b64_encode_url($payload);
-
-		// Sign the token
-		try
+		$jwt = $this->jwt_create($payload, $time, $expires);
+		if ($jwt)
 		{
-			$sig = sodium_crypto_sign_detached($jwt, $this->secret_key);
+			$this->user->set_cookie('anubisbb', $jwt, $time + $this->cookie_time);
 		}
-		catch (SodiumException $e)
+		else
 		{
-			// Problem?
-			// TODO: log errors
 			$this->remove_cookie();
-			return;
 		}
-
-		// Append the signature to the token, and the cookie is baked
-		$jwt .= '.' . $this->b64_encode_url($sig);
-		$this->user->set_cookie('anubisbb', $jwt, $time + $this->cookie_time);
 	}
 
 	/**
@@ -289,8 +235,6 @@ class anubis_core
 
 	/**
 	 * Create a Json Web Token (JWT) when the user logs out
-	 *
-	 * @throws \SodiumException
 	 */
 	public function logout_cookie()
 	{
@@ -300,6 +244,74 @@ class anubis_core
 			$this->bake_cookie();
 		}
 	}
+
+	public function jwt_create($data, $timestamp, $expires)
+	{
+		$payload = json_encode([
+			'data' => $data,
+			'exp'  => $expires,        // Expires
+			'iat'  => $timestamp,      // Issued at
+			'nbf'  => $timestamp - 30, // Not before
+		]);
+
+		// Encode the token
+		$encoded_payload = $this->b64_encode_url($payload);
+
+		// Sign the token
+		try
+		{
+			$sig = sodium_crypto_sign_detached($encoded_payload, $this->secret_key);
+		}
+		catch (SodiumException $e)
+		{
+			// Problem?
+			// TODO: log errors
+			return false;
+		}
+
+		// Append the signature to the token
+		return $encoded_payload . '.' . $this->b64_encode_url($sig);
+	}
+
+	public function jwt_unpack($jwt)
+	{
+		// Split token into payload and signature
+		$token = explode('.', $jwt);
+		if (count($token) !== 2)
+		{
+			return false;
+		}
+		$encoded_payload = $token[0];
+		$signature       = $this->b64_decode_url($token[1]);
+
+		// Validate the signature
+		try
+		{
+			$public_key = substr($this->secret_key, SODIUM_CRYPTO_SIGN_SEEDBYTES);
+			if (!sodium_crypto_sign_verify_detached($signature,$encoded_payload,$public_key))
+			{
+				// TODO: log bad key
+				return false;
+			}
+		}
+		catch (SodiumException $e)
+		{
+			return false;
+		}
+
+		// Decode token
+		$payload = json_decode($this->b64_decode_url($encoded_payload), true);
+
+		// Stale cookies, yuck!
+		if (time() > $payload['exp'] || time() < $payload['nbf'])
+		{
+			// TODO: log, maybe? the client should have cleared the cookie before sending it to us
+			return false;
+		}
+
+		return $payload;
+	}
+
 
 	/**
 	 * URL safe base64 encoding

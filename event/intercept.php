@@ -266,7 +266,7 @@ class intercept implements EventSubscriberInterface
 				case 'app':
 					// Grab the route
 					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-					if (preg_match('~^/(?:feed(?:/|$)|anubis/api/)~', $route))
+					if (preg_match('~^/(?:feed(?:/|$)|anubis/)~', $route))
 					{
 						return true;
 					}
@@ -285,15 +285,18 @@ class intercept implements EventSubscriberInterface
 
 	private function intercept()
 	{
-		$route = $this->controller_helper->route('neodev_anubisbb_make_challenge');
+		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge');
+		$no_js  = $this->controller_helper->route('neodev_anubisbb_pages',['name'=>'nojs'],true,false,0);
 
 		// Prevent an infinite loop: don't cache the "Loading..." redirect to Anubis.
 		// Otherwise the user will keep being sent back to Anubis, even after they have a valid cookie.
 		header('Cache-Control: no-store');
 
 		echo <<< END
+<!DOCTYPE html>
 <html lang="en">
 <head>
+	<meta http-equiv="refresh" content="20;url=$no_js" />
 	<title>Loading...</title>
 	<style>
 		body{background: #f9f5d7;margin: 0}
@@ -314,12 +317,12 @@ class intercept implements EventSubscriberInterface
 		<div class="spinner">
 			<div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div>
 		</div>
-		Loading<noscript><br><a href="$route">Click to continue</a></noscript>
+		<noscript><br><a href="$no_js" style="font-family: sans-serif">Javascript is disabled, click to continue</a></noscript>
 	</div>
 </div>
 <script>
 	const goto=(() => {
-		const u = new URL('$route', window.location.href);
+		const u = new URL('$make_challenge', window.location.href);
 		u.searchParams.set('redir', window.location.href);
 		window.location.assign(u.toString());
 	});

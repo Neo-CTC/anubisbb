@@ -7,3 +7,7 @@ neodev_anubisbb_make_challenge:
 neodev_anubisbb_benchmark:
     path: /anubis/api/benchmark
     defaults: { _controller: neodev.anubisbb.controller.api:benchmark }
+
+neodev_anubisbb_pages:
+    path: /anubis/pages/{name}
+    defaults: { _controller: neodev.anubisbb.controller.pages:handler }

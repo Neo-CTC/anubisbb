@@ -1,0 +1,44 @@
+{% include "@neodev_anubisbb/header.html" %}
+<div class="centered-div">
+	<form method="post">
+		<h1>{{ lang('LOGIN') }}</h1>
+		<div style="display: flex; margin-top: 6px">
+			<div style="flex: 1;text-align: right; padding-right: 3px; border-right: 2px solid; margin-right: 3px; ">
+				<h3 style="margin: 0"><a href="{{ ROOT_PATH }}index.php">{{ lang('FORUM_INDEX') }}</a></h3>
+			</div>
+			<div style="flex: 1;text-align: left">
+				<h3 style="margin: 0"><a href="{{ contact }}">{{ lang('CONTACT_US') }}</a></h3>
+			</div>
+		</div>
+		{% if error %}
+		<div style="background:lightcoral;margin: 16px auto">{{ lang(error) }}</div>
+		{% endif %}
+		<div style="margin: auto;text-align: left;width: fit-content">
+			<dl>
+				<dt><label for="username">{{ lang('USERNAME') }}{{ lang('COLON') }}</label></dt>
+				<dd>
+					<input type="text" tabindex="1" name="username" id="username" value="{{ USERNAME }}" autocomplete="username">
+				</dd>
+			</dl>
+
+			<dl>
+				<dt><label for="password">{{ lang('PASSWORD') }}{{ lang('COLON') }}</label></dt>
+				<dd>
+					<input type="password" tabindex="2" id="password" name="password" autocomplete="current-password">
+				</dd>
+			</dl>
+		</div>
+{#		<input type="hidden" name="timestamp" value="{{ timestamp }}">#}
+		<input type="hidden" name="token" value="{{ token }}">
+		{# TODO: catpcha #}
+		<!-- IF CAPTCHA_TEMPLATE and S_CONFIRM_CODE -->
+		<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
+		<!-- INCLUDE {CAPTCHA_TEMPLATE} -->
+		<!-- ENDIF -->
+		{{ S_FORM_TOKEN }}
+		{{ S_HIDDEN_FIELDS }}
+		<input type="submit" name="login" tabindex="6" value="{{ lang('LOGIN') }}">
+	</form>
+</div>
+
+{% include "@neodev_anubisbb/footer.html" %}

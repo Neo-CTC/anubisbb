@@ -10,6 +10,18 @@ services:
             - '@user'
             - '@dbal.conn'
 
+    neodev.anubisbb.controller.pages:
+        class: neodev\anubisbb\controller\pages_controller
+        arguments:
+            - '@config'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@path_helper'
+            - '@user'
+            - '@dbal.conn'
+            - '@auth'
+
     neodev.anubisbb.controller.acp:
         class: neodev\anubisbb\controller\acp_controller
         arguments:

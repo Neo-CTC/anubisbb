@@ -1,12 +1,12 @@
-
+{# TODO This template needs more love #}
 {% if failure %}
   {% include "@neodev_anubisbb/header.html" %}
   <div class="centered-div">
-    <img id="image" alt="Sad Anubis" style="width:100%;max-width:256px;" src="{{ anubis.BasePrefix }}img/reject.webp">
+    <img id="image" alt="Sad Anubis" style="width:100%;max-width:256px;" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/reject.webp">
     <p>{{ err_message }}</p>
     <button onClick="window.location.reload();">Try again</button>
-    <p><a href="/">Go home</a> or if you believe you should not be blocked, please contact the webmaster at <a href="mailto:{{ email }}">{{ email }}</a></p>
-    <p><a href="/">Go home</a></p>"
+    <p><a href="{{ ROOT_PATH }}">Go home</a> or if you believe you should not be blocked, please contact the webmaster at <a href="mailto:{{ email }}">{{ email }}</a></p>
+    <p><a href="{{ ROOT_PATH }}">Go home</a></p>"
   </div>
   {% include "@neodev_anubisbb/footer.html" %}
 {% else %}

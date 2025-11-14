@@ -2,6 +2,9 @@ import processFast from "./proof-of-work.js";
 import processSlow from "./proof-of-work-slow.js";
 import { testVideo } from "./video.js";
 
+const abort_controller = new AbortController();
+globalThis.anubis_abort = abort_controller
+
 const algorithms = {
   "fast": processFast,
   "slow": processSlow,
@@ -136,13 +139,12 @@ const dependencies = [
     return;
   }
 
-
   try {
     const t0 = Date.now();
     const { hash, nonce } = await process(
       challenge,
       rules.difficulty,
-      null,
+      abort_controller.signal,
       (iters) => {
         const delta = Date.now() - t0;
         // only update the speed every second so it's less visually distracting

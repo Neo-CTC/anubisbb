@@ -21,6 +21,7 @@ services:
             - '@user'
             - '@dbal.conn'
             - '@auth'
+            - '@language'
 
     neodev.anubisbb.controller.acp:
         class: neodev\anubisbb\controller\acp_controller

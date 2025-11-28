@@ -278,6 +278,17 @@ class intercept implements EventSubscriberInterface
 						return true;
 					}
 				break;
+
+				case 'ucp':
+					$mode = $this->request->variable('mode', '');
+
+					// Used by some spambot countermeasures
+					if (in_array($mode, ['confirm']))
+					{
+						$this->user->session_kill(false);
+						return true;
+					}
+				break;
 			}
 		}
 		return false;

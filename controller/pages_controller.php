@@ -18,6 +18,7 @@ use phpbb\auth\auth;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
+use phpbb\language\language;
 use phpbb\path_helper;
 use phpbb\request\request;
 use phpbb\request\request_interface;
@@ -64,6 +65,10 @@ class pages_controller
 
 	private $auth;
 
+	private $language;
+
+	private $routes;
+
 	/**
 	 * Constructor
 	 *
@@ -71,7 +76,7 @@ class pages_controller
 	 * @param \phpbb\controller\helper $helper   Controller helper object
 	 * @param \phpbb\template\template $template Template object
 	 */
-	public function __construct(config $config, controller_helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db, auth $auth)
+	public function __construct(config $config, controller_helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db, auth $auth, language $language)
 	{
 		$this->config            = $config;
 		$this->controller_helper = $helper;
@@ -80,15 +85,27 @@ class pages_controller
 		$this->user              = $user;
 		$this->db                = $db;
 		$this->auth              = $auth;
+		$this->language          = $language;
 
 		$this->web_root_path = $path_helper->get_web_root_path();
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
+
+		$this->routes = [
+			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact']),
+			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login']),
+		];
 	}
 
 	public function handler($name)
 	{
+		// Make paths to the other pages
+		$this->template->assign_vars([
+			'contact' => $this->routes['contact'],
+			'login'   => $this->routes['login'],
+		]);
+
 		switch ($name)
 		{
 			// Used to allow users to login when there is an error or javascript is disabled
@@ -97,6 +114,10 @@ class pages_controller
 				// TODO: catch non-db based logins (OAuth, etc) and block
 				// TODO: logging
 				// TODO: csrf testing
+
+				// Alt login system
+				// $this->template->set_style(['ext/neodev/anubisbb/styles','styles']);
+				// login_box();
 
 				// Not killing the user session just yet, need it for the login process
 				if ($this->request->is_set_post('login'))
@@ -120,9 +141,7 @@ class pages_controller
 					// There was a problem making the token
 					return $this->build_error_page('Error processing page');
 				}
-
-				$this->template->assign_var('contact', $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact']));
-				return $this->controller_helper->render('@neodev_anubisbb/login.html');
+				return $this->controller_helper->render('@neodev_anubisbb/login_body.html');
 
 			case 'contact':
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
@@ -130,12 +149,6 @@ class pages_controller
 			case 'nojs':
 				// Kill the new session, we don't need it
 				$this->user->session_kill(false);
-
-				// Make paths to the other pages
-				$this->template->assign_vars([
-					'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact']),
-					'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login']),
-				]);
 
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
 
@@ -196,7 +209,7 @@ class pages_controller
 		// Do we have the cookie?
 		if (!$this->request->is_set($cookie_name, request_interface::COOKIE))
 		{
-			$this->template->assign_var('error', 'Cookies missing or disabled');
+			$this->template->assign_var('LOGIN_ERROR', 'Cookies missing or disabled');
 			return false;
 		}
 
@@ -206,7 +219,7 @@ class pages_controller
 		// We don't have the cookie??
 		if (!$jwt)
 		{
-			$this->template->assign_var('error', 'Invalid form, try again');
+			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
 			return false;
 		}
 
@@ -215,7 +228,7 @@ class pages_controller
 		// Bad cookie
 		if ($payload === false)
 		{
-			$this->template->assign_var('error', 'Invalid form, try again');
+			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
 			return false;
 		}
 
@@ -229,7 +242,7 @@ class pages_controller
 
 		if (!hash_equals($known_token, $token))
 		{
-			$this->template->assign_var('error', 'Invalid form, try again');
+			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
 			return false;
 		}
 
@@ -237,15 +250,54 @@ class pages_controller
 		$password = $this->request->untrimmed_variable('password', '', true);
 
 		$result = $this->auth->login($username, $password);
-		if ($result['status'] == LOGIN_SUCCESS)
+
+		// Login strings stored in ucp
+		$this->language->add_lang('ucp');
+		switch ($result['status'])
 		{
-			return true;
-		}
-		// TODO: handle the various login results
-		else
-		{
-			$this->template->assign_var('error', $result['error_msg']);
-			return false;
+			// TODO: handle the various login results
+			// TODO: test banning
+			// TODO: check if captcha is needed
+			case LOGIN_SUCCESS:
+				return true;
+
+			case LOGIN_ERROR_ATTEMPTS:
+				global $phpbb_container;
+
+				/** @var \phpbb\captcha\plugins\captcha_abstract $captcha */
+				$captcha = $phpbb_container->get('captcha.factory')->get_instance($this->config['captcha_plugin']);
+				$captcha->init(CONFIRM_LOGIN);
+
+				// Only show captcha if not solved
+				if (!$captcha->is_solved())
+				{
+					$this->template->assign_vars([
+						'CAPTCHA_TEMPLATE' => $captcha->get_template(),
+					]);
+				}
+				// captcha is solved, let's remember that
+				else
+				{
+					$this->template->assign_var('captcha_hf', build_hidden_fields($captcha->get_hidden_fields()));
+				}
+			// Keep going to default
+
+			// All other errors handled here, e.g. LOGIN_ERROR_PASSWORD_CONVERT, LOGIN_BREAK
+			default:
+				$err = $result['error_msg'];
+
+				// Assign admin contact to some error messages
+				if ($err == 'LOGIN_ERROR_USERNAME' || $err == 'LOGIN_ERROR_PASSWORD')
+				{
+					$err = $this->language->lang($err, '<a href="'. $this->routes['contact'] . '">', '</a>');
+				}
+				else
+				{
+					$err = $this->language->lang($err);
+				}
+
+				$this->template->assign_var('LOGIN_ERROR', $err);
+				return false;
 		}
 	}
 

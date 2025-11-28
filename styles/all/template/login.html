@@ -11,7 +11,7 @@
 			</div>
 		</div>
 		{% if error %}
-		<div style="background:lightcoral;margin: 16px auto">{{ lang(error) }}</div>
+		<div style="border: #ca0000 5px solid;padding: 2px;margin: 16px auto">{{ lang(error) }}</div>
 		{% endif %}
 		<div style="margin: auto;text-align: left;width: fit-content">
 			<dl>
@@ -28,16 +28,38 @@
 				</dd>
 			</dl>
 		</div>
-{#		<input type="hidden" name="timestamp" value="{{ timestamp }}">#}
-		<input type="hidden" name="token" value="{{ token }}">
+
 		{# TODO: catpcha #}
-		<!-- IF CAPTCHA_TEMPLATE and S_CONFIRM_CODE -->
+
+		{% if CAPTCHA_TEMPLATE %}
+			<style>
+				h2 {
+					text-align: center;;
+				}
+				.captcha_box {
+					text-align: left;
+					border: 1px black solid;
+					padding: 8px;
+					width: min-content;
+					min-width: 220px;
+					max-width: 500px;
+					box-sizing: border-box;
+					margin: auto;
+				}
+				.captcha_box span {
+					font-size: smaller;
+				}
+			</style>
+		<div class="captcha_box">
+			<h2>Captcha</h2>
 		<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
-		<!-- INCLUDE {CAPTCHA_TEMPLATE} -->
-		<!-- ENDIF -->
-		{{ S_FORM_TOKEN }}
+		{% include CAPTCHA_TEMPLATE %}
+		</div>
+		{% endif %}
 		{{ S_HIDDEN_FIELDS }}
-		<input type="submit" name="login" tabindex="6" value="{{ lang('LOGIN') }}">
+		{{ captcha_hf }}
+		<input type="hidden" name="token" value="{{ token }}">
+		<input type="submit" name="login" tabindex="6" value="{{ lang('LOGIN') }}" style="margin: 12px">
 	</form>
 </div>
 

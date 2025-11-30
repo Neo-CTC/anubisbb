@@ -285,7 +285,7 @@ class intercept implements EventSubscriberInterface
 					// Used by some spambot countermeasures
 					if (in_array($mode, ['confirm']))
 					{
-						$this->user->session_kill(false);
+						// TODO: don't kill user session if cookie
 						return true;
 					}
 				break;
@@ -307,7 +307,7 @@ class intercept implements EventSubscriberInterface
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta http-equiv="refresh" content="20;url=$no_js" />
+	<meta http-equiv="refresh" content="1;url=$no_js" />
 	<title>Loading...</title>
 	<style>
 		body{background: #f9f5d7;margin: 0}

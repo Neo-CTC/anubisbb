@@ -217,7 +217,7 @@ class anubis_core
 		$jwt = $this->jwt_create($payload, $time, $expires);
 		if ($jwt)
 		{
-			$this->user->set_cookie('anubisbb', $jwt, $time + $this->cookie_time);
+			$this->user->set_cookie('anubisbb', $jwt, $expires);
 		}
 		else
 		{

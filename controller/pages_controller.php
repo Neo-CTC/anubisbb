@@ -92,9 +92,10 @@ class pages_controller
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 
+		// Routing but without sid
 		$this->routes = [
-			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact']),
-			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login']),
+			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'],true,''),
+			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'],true,''),
 		];
 	}
 
@@ -111,37 +112,43 @@ class pages_controller
 			// Used to allow users to login when there is an error or javascript is disabled
 			case 'login':
 				//TODO: redirects, use cookies?
-				// TODO: catch non-db based logins (OAuth, etc) and block
 				// TODO: logging
-				// TODO: csrf testing
 
-				// Alt login system
-				// $this->template->set_style(['ext/neodev/anubisbb/styles','styles']);
-				// login_box();
+				// Cookie check. If the user isn't saving cookies, then we can kill the session
+				$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
+				$cc_page   = $this->request->is_set('cc', request_interface::GET);
 
-				// Not killing the user session just yet, need it for the login process
-				if ($this->request->is_set_post('login'))
-				{
-					if ($this->login_process())
+				// Cookie not set or gone stale
+				if (!$cc_cookie || $this->anubis->jwt_unpack($cc_cookie) === false){
+					$this->user->session_kill(false);
+
+					// No cookie and yet we are on the cookie check page. Cookie check, failed!
+					if ($cc_page)
 					{
-						// TODO: follow redirect
-						redirect('index.php');
+						return $this->build_error_page('Cookies disabled.');
 					}
+
+					// Bake a new cookie
+					$t = time();
+					$e = $t + 3600;
+					$cc = $this->anubis->jwt_create('cookies enabled', $t, $e);
+					$this->user->set_cookie('anubisbb_cc',$cc,$e);
+					redirect($this->routes['login'] . '?cc');
 				}
-
-				// We no long need the user session, kill it to prevent bots from
-				// filling up the session table.
-				$this->user->session_kill(false);
-
-				// Make a token for the login form
-				if (!$this->csrf_token())
+				if ($cc_page)
 				{
-					// TODO: retry link
-					// TODO: logging
-					// There was a problem making the token
-					return $this->build_error_page('Error processing page');
+					// Let's leave the cookie check page
+					redirect($this->routes['login']);
 				}
-				return $this->controller_helper->render('@neodev_anubisbb/login_body.html');
+
+				// TODO: follow redirects
+
+				// phpBB login system
+				// Put our styles first to override login box template
+				$this->template->set_style(['ext/neodev/anubisbb/styles','styles']);
+				login_box();
+
+
 
 			case 'contact':
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
@@ -156,148 +163,6 @@ class pages_controller
 
 			default:
 				return $this->build_error_page('Page not found');
-		}
-	}
-
-	private function csrf_token()
-	{
-		$timestamp = time();
-		/**************
-		 * Because we killed the user session, we must create our own CSRF token
-		 * Ref: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
-		 **************/
-
-		try
-		{
-			// It's not enough to create a CSRF token, we must also connect it
-			// to a user session, which we simulate by creating a cookie with random bytes
-			$sid = bin2hex(random_bytes(32));
-
-			// Since the session is not stored anywhere, we need a way to validate it.
-			// This is accomplished by signing the session with a Json Web Token.
-			// Create the token, expires in 5 minutes
-			$cookie_expire = $timestamp + 300;
-			$jwt           = $this->anubis->jwt_create($sid, $timestamp, $cookie_expire);
-
-			$this->user->set_cookie('anubisbb_session', $jwt, $cookie_expire);
-		}
-		catch (Exception $e)
-		{
-			// Catch sodium exceptions
-			// TODO: logging
-			return false;
-		}
-		$challenge = $this->anubis->make_challenge($timestamp);
-
-		// Finally bind the sid and challenge to form the final token
-		$token = hash('sha256', $challenge . $sid . 'login');
-
-		$this->template->assign_vars([
-			// Don't need the timestamp, we'll grab it from the session JWT
-			// 'timestamp' => $timestamp,
-			'token' => $token,
-		]);
-		return true;
-	}
-
-	private function login_process()
-	{
-		// TODO: log the errors
-
-		$cookie_name = $this->anubis->cookie_name . '_session';
-
-		// Do we have the cookie?
-		if (!$this->request->is_set($cookie_name, request_interface::COOKIE))
-		{
-			$this->template->assign_var('LOGIN_ERROR', 'Cookies missing or disabled');
-			return false;
-		}
-
-		// We have the cookie
-		$jwt = $this->request->variable($cookie_name, '', false, request_interface::COOKIE);
-
-		// We don't have the cookie??
-		if (!$jwt)
-		{
-			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
-			return false;
-		}
-
-		// Unpack the cookie
-		$payload = $this->anubis->jwt_unpack($jwt);
-		// Bad cookie
-		if ($payload === false)
-		{
-			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
-			return false;
-		}
-
-		$sid       = $payload['data'];
-		$timestamp = $payload['iat']; // Timestamp already verified in range
-		$token     = $this->request->variable('token', '');
-
-		// Start building known hash
-		$challenge = $this->anubis->make_challenge($timestamp);
-		$known_token = hash('sha256', $challenge . $sid . 'login');
-
-		if (!hash_equals($known_token, $token))
-		{
-			$this->template->assign_var('LOGIN_ERROR', 'Invalid form, try again');
-			return false;
-		}
-
-		$username = $this->request->variable('username', '');
-		$password = $this->request->untrimmed_variable('password', '', true);
-
-		$result = $this->auth->login($username, $password);
-
-		// Login strings stored in ucp
-		$this->language->add_lang('ucp');
-		switch ($result['status'])
-		{
-			// TODO: handle the various login results
-			// TODO: test banning
-			// TODO: check if captcha is needed
-			case LOGIN_SUCCESS:
-				return true;
-
-			case LOGIN_ERROR_ATTEMPTS:
-				global $phpbb_container;
-
-				/** @var \phpbb\captcha\plugins\captcha_abstract $captcha */
-				$captcha = $phpbb_container->get('captcha.factory')->get_instance($this->config['captcha_plugin']);
-				$captcha->init(CONFIRM_LOGIN);
-
-				// Only show captcha if not solved
-				if (!$captcha->is_solved())
-				{
-					$this->template->assign_vars([
-						'CAPTCHA_TEMPLATE' => $captcha->get_template(),
-					]);
-				}
-				// captcha is solved, let's remember that
-				else
-				{
-					$this->template->assign_var('captcha_hf', build_hidden_fields($captcha->get_hidden_fields()));
-				}
-			// Keep going to default
-
-			// All other errors handled here, e.g. LOGIN_ERROR_PASSWORD_CONVERT, LOGIN_BREAK
-			default:
-				$err = $result['error_msg'];
-
-				// Assign admin contact to some error messages
-				if ($err == 'LOGIN_ERROR_USERNAME' || $err == 'LOGIN_ERROR_PASSWORD')
-				{
-					$err = $this->language->lang($err, '<a href="'. $this->routes['contact'] . '">', '</a>');
-				}
-				else
-				{
-					$err = $this->language->lang($err);
-				}
-
-				$this->template->assign_var('LOGIN_ERROR', $err);
-				return false;
 		}
 	}
 

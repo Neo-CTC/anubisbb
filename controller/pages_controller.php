@@ -93,9 +93,11 @@ class pages_controller
 		$this->logger = new logger($this->config, $this->user);
 
 		// Routing but without sid
+		global $phpbb_root_path;
 		$this->routes = [
-			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'],true,''),
-			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'],true,''),
+			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
+			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
+			'index'   => $phpbb_root_path,
 		];
 	}
 
@@ -109,17 +111,24 @@ class pages_controller
 
 		switch ($name)
 		{
-			// Used to allow users to login when there is an error or javascript is disabled
+			// Login page when there is an error or javascript is disabled
 			case 'login':
-				//TODO: redirects, use cookies?
+				// TODO: redirects, use cookies?
 				// TODO: logging
+				// TODO: set user page to anubis login for view online page
 
-				// Cookie check. If the user isn't saving cookies, then we can kill the session
+				/*
+				 * Normally we would kill the user session until the user passes the Anubis challenge.
+				 * Unfortunately, the login box requires a user session to work. Therefore, we run a
+				 * cookie check. If the user isn't saving cookies, then there's no point in saving the
+				 * user session.
+				 */
 				$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
 				$cc_page   = $this->request->is_set('cc', request_interface::GET);
 
-				// Cookie not set or gone stale
-				if (!$cc_cookie || $this->anubis->jwt_unpack($cc_cookie) === false){
+				// Missing or stale cookie
+				if (!$cc_cookie || $this->anubis->jwt_unpack($cc_cookie) === false)
+				{
 					$this->user->session_kill(false);
 
 					// No cookie and yet we are on the cookie check page. Cookie check, failed!
@@ -129,13 +138,14 @@ class pages_controller
 					}
 
 					// Bake a new cookie
-					$t = time();
-					$e = $t + 3600;
+					$t  = time();
+					$e  = $t + 3600; // One hour
 					$cc = $this->anubis->jwt_create('cookies enabled', $t, $e);
-					$this->user->set_cookie('anubisbb_cc',$cc,$e);
+					$this->user->set_cookie('anubisbb_cc', $cc, $e);
 					redirect($this->routes['login'] . '?cc');
 				}
-				if ($cc_page)
+
+				else if ($cc_page)
 				{
 					// Let's leave the cookie check page
 					redirect($this->routes['login']);
@@ -145,21 +155,22 @@ class pages_controller
 
 				// phpBB login system
 				// Put our styles first to override login box template
-				$this->template->set_style(['ext/neodev/anubisbb/styles','styles']);
-				login_box();
-
+				$this->template->set_style(['ext/neodev/anubisbb/styles', 'styles']);
+				$redirect = $this->request->variable('redirect', '') ?: $this->routes['index'];
+				login_box($redirect);
+			break;
 
 
 			case 'contact':
+				// TODO: cookie check
+				// TODO: kill session
+				// TODO: csf token
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
 
 			case 'nojs':
 				// Kill the new session, we don't need it
 				$this->user->session_kill(false);
-
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
-
-			// TODO: cookies disabled page
 
 			default:
 				return $this->build_error_page('Page not found');

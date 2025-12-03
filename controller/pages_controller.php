@@ -121,6 +121,7 @@ class pages_controller
 
 				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
+				$this->logger->log('Login page');
 
 				$this->language->add_lang('ucp');
 
@@ -139,6 +140,7 @@ class pages_controller
 			case 'contact':
 				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
+				$this->logger->log('Contact page');
 
 				$this->language->add_lang('memberlist');
 
@@ -177,6 +179,7 @@ class pages_controller
 			case 'nojs':
 				// Kill the new session, we don't need it
 				$this->user->session_kill(false);
+				$this->logger->log('No JavaScript page');
 
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_OH_NO'));
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
@@ -188,6 +191,7 @@ class pages_controller
 				// The user is on this page and still no cookie? Cookie check, FAILED!
 				if ($cc_cookie === false)
 				{
+					$this->logger->log('Cookie check: cookies disabled');
 					return $this->build_error_page('Cookies not enabled');
 				}
 

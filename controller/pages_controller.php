@@ -118,20 +118,21 @@ class pages_controller
 		{
 			// Login page when there is an error or javascript is disabled
 			case 'login':
-				$this->template->assign_var('title', $this->language->lang('ANUBISBB_LOGIN_TITLE'));
-				// TODO: redirects, use cookies?
 				// TODO: logging
 				// TODO: set user page to anubis login for view online page
 
 				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
 
-				// TODO: follow redirects
+				$this->language->add_lang('ucp');
 
-				// phpBB login system
 				// Put our styles first to override login box template
 				$this->template->set_style(['ext/neodev/anubisbb/styles', 'styles']);
+				$this->template->assign_var('title', $this->language->lang('ANUBISBB_LOGIN_TITLE'));
+
+				// TODO: redirects
 				$redirect = $this->request->variable('redirect', '') ?: $this->routes['index'];
+
 				login_box($redirect);
 
 				// Just in case

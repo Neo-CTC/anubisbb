@@ -178,8 +178,8 @@ class intercept implements EventSubscriberInterface
 
 	public function session_cleanup()
 	{
-		// Remove unverified visitors sessions after 10 minutes.
-		$ttl = time() - 600;
+		// Remove unverified visitors sessions after a period of inactivity.
+		$ttl = time() - $this->anubis::GUEST_TTL;
 		$sql = 'DELETE FROM ' . SESSIONS_TABLE . ' WHERE session_user_id = ' . ANONYMOUS . ' and anubisbb_pass = 0 and session_time < ' . $ttl;
 		$this->db->sql_query($sql);
 	}

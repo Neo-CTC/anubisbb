@@ -29,6 +29,8 @@ class anubis_core
 	private $difficulty;
 	private $secret_key;
 
+	const GUEST_TTL = 1800; // 30 minutes
+
 	public function __construct(config $config, request $request, user $user)
 	{
 		$this->error   = '';

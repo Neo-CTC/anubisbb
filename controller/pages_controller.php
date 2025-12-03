@@ -221,7 +221,7 @@ class pages_controller
 		// Missing or stale cookie, or we're on a different page.
 		$this->user->session_kill(false);
 		$t  = time();
-		$e  = $t + 3600; // 1 hour
+		$e  = $t + $this->anubis::GUEST_TTL;
 		$cc = $this->anubis->jwt_create(['page' => $base_page], $t, $e);
 		$this->user->set_cookie('anubisbb_cc', $cc, $e);
 		redirect($this->routes['cc']);

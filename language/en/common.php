@@ -35,16 +35,8 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, [
-
-	'ANUBISBB_HELLO'   => 'Hello %s!',
-	'ANUBISBB_GOODBYE' => 'Goodbye %s!',
-
-	'ANUBISBB_EVENT' => ' :: Anubisbb Event :: ',
-
-	'ACP_ANUBISBB_GOODBYE'       => 'Should say goodbye?',
-	'ACP_ANUBISBB_SETTING_SAVED' => 'Settings have been saved successfully!',
-
-	'ANUBISBB_PAGE'           => 'Anubisbb Page',
-	'VIEWING_NEODEV_ANUBISBB' => 'Viewing AnubisBB page',
+	'ANUBISBB_LOGIN_TITLE'  => 'phpBB Login',
+	'ANUBISBB_OH_NO'        => 'Oh noes!',
+	'ANUBISBB_NOJS_EXPLAIN' => 'Sadly, you must enable JavaScript to get past this challenge. This is required because AI companies have changed the social contract around how website hosting works. A no-JS solution is a work-in-progress.',
 
 ]);

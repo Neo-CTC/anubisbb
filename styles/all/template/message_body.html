@@ -1,0 +1,7 @@
+{# Used by trigger_error calls #}
+{% include "@neodev_anubisbb/header.html" %}
+<div class="centered-div" id="message">
+	<img id="image" class="anubis-img" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/{% if S_USER_WARNING %}reject{% else %}happy{% endif %}.webp" alt="Anubis reacts to the message">
+	<p>{MESSAGE_TEXT}</p>
+</div>
+{% include "@neodev_anubisbb/footer.html" %}

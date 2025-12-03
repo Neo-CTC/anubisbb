@@ -25,6 +25,8 @@ use phpbb\request\request_interface;
 use phpbb\template\template;
 use phpbb\user;
 
+use messenger;
+
 /**
  * AnubisBB main controller.
  */
@@ -92,6 +94,8 @@ class pages_controller
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 
+		$this->language->add_lang('common', 'neodev/anubisbb');
+
 		// Routing but without sid
 		global $phpbb_root_path;
 		$this->routes = [
@@ -113,6 +117,7 @@ class pages_controller
 		{
 			// Login page when there is an error or javascript is disabled
 			case 'login':
+				$this->template->assign_var('title', $this->language->lang('ANUBISBB_LOGIN_TITLE'));
 				// TODO: redirects, use cookies?
 				// TODO: logging
 				// TODO: set user page to anubis login for view online page
@@ -158,18 +163,55 @@ class pages_controller
 				$this->template->set_style(['ext/neodev/anubisbb/styles', 'styles']);
 				$redirect = $this->request->variable('redirect', '') ?: $this->routes['index'];
 				login_box($redirect);
-			break;
 
+				// Just in case
+				return $this->build_error_page('Login box error');
 
 			case 'contact':
 				// TODO: cookie check
 				// TODO: kill session
 				// TODO: csf token
+
+
+				$this->language->add_lang('memberlist');
+
+				if ($this->request->is_set_post('submit'))
+				{
+					if (!class_exists('messenger'))
+					{
+						global $phpbb_root_path, $phpEx, $phpbb_container;
+						include($phpbb_root_path . 'includes/functions_messenger.' . $phpEx);
+					}
+					/** @var $form \phpbb\message\form */
+					$form = $phpbb_container->get('message.form.admin');
+
+					$form->bind($this->request);
+					$error = $form->check_allow();
+					if ($error)
+					{
+						return $this->build_error_page($this->language->lang($error));
+					}
+
+					$messenger = new messenger(false);
+					$form->submit($messenger);
+
+					// Oh, you're still here? Probably an error.
+					// Form render runs add_form_key and populates the ERROR_MESSAGE variable
+					$form->render($this->template);
+				}
+				else
+				{
+					add_form_key('memberlist_email');
+				}
+
+				$this->template->assign_var('title', $this->language->lang('CONTACT_ADMIN'));
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
 
 			case 'nojs':
 				// Kill the new session, we don't need it
 				$this->user->session_kill(false);
+
+				$this->template->assign_var('title', $this->language->lang('ANUBISBB_OH_NO'));
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
 
 			default:

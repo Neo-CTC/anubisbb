@@ -1,36 +1,39 @@
 {% include "@neodev_anubisbb/header.html" %}
 <div class="centered-div">
+	<img id="image" class="anubis-img" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/happy.webp" alt="Anubis rejoices">
 	<form method="post">
-		<h1>Contact</h1>
-		<table style="margin: auto;padding: 10px;">
-			<tr>
-				<td style="text-align: left">
-					<label for="name">Name</label>
-				</td>
-				<td>
-					<input id="name" type="text" name="username">
-				</td>
-			</tr>
-			<tr>
-				<td style="text-align: left">
-					<label for="email">Email</label>
-				</td>
-				<td>
-					<input id="email" type="email" name="email">
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2" style="text-align: left">
-					<label for="message" >Message</label>
-					<textarea id="message" rows="6" style="width: 100%;"></textarea>
-				</td>
-			</tr>
-		</table>
-		<input type="hidden" name="time" value="{{ timestamp }}">
-		<input type="hidden" name="token" value="{{ token }}">
-		<input type="submit">
+		<div class="panel" style="max-width: min-content">
+			<div class="inner">
+				<div class="content">
+					<fieldset class="fields1">
+						{% if ERROR_MESSAGE %}<p class="error">{ERROR_MESSAGE}</p>{% endif %}
+						<dl>
+							<dt><label for="name">{L_SENDER_NAME}{L_COLON}</label></dt>
+							<dd><input type="text" name="name" id="name" size="15" tabindex="1" value="{NAME}"/></dd>
+						</dl>
+						<dl>
+							<dt><label for="email">{L_SENDER_EMAIL_ADDRESS}{L_COLON}</label></dt>
+							<dd><input type="text" name="email" id="email" size="30" maxlength="100" tabindex="2" value="{EMAIL}"/></dd>
+						</dl>
+						<dl>
+							<dt><label for="subject">{L_SUBJECT}{L_COLON}</label></dt>
+							<dd><input type="text" name="subject" id="subject" size="30" tabindex="3" value="{SUBJECT}"/></dd>
+						</dl>
+						<dl>
+							<dt><label for="message">{L_MESSAGE_BODY}{L_COLON}</label><br/>
+								<span>{L_EMAIL_BODY_EXPLAIN}</span></dt>
+							<dd><textarea name="message" id="message" rows="15" cols="60" tabindex="4">{MESSAGE}</textarea></dd>
+						</dl>
+						<dl>
+							<dt>&nbsp;</dt>
+							<dd><input type="submit" tabindex="6" name="submit" class="button1" value="{L_SEND_EMAIL}"/></dd>
+						</dl>
+					</fieldset>
+				</div>
+			</div>
+		</div>
+		{{ S_HIDDEN_FIELDS }}
+		{{ S_FORM_TOKEN }}
 	</form>
-
-	<p><a href="{{ ROOT_PATH }}index.php">Home</a> | <a href="{{ login }}">Login</a> | Contact</p>
 </div>
 {% include "@neodev_anubisbb/footer.html" %}

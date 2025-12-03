@@ -1,56 +1,61 @@
 {% include "@neodev_anubisbb/header.html" %}
+<div class="centered-div">
+	<img id="image" class="anubis-img" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/pensive.webp" alt="Anubis pensively waits">
+	<form action="{{ login }}" method="post" id="login" data-focus="{{ USERNAME_CREDENTIAL }}">
+		<div class="panel">
+			<div class="inner">
+				<div class="content">
+					<fieldset class="fields1">
+						{% if LOGIN_ERROR %}
+							<div class="error">{LOGIN_ERROR}</div>{% endif %}
+						<dl>
+							<dt><label for="username">{{ lang('USERNAME') }}{{ lang('COLON') }}</label></dt>
+							<dd>
+								<input type="text" tabindex="1" name="username" id="username" size="25" value="{USERNAME}" class="inputbox autowidth" autocomplete="username"/>
+							</dd>
+						</dl>
+						<dl>
+							<dt><label for="password">{{ lang('PASSWORD') }}{{ lang('COLON') }}</label></dt>
+							<dd>
+								<input type="password" tabindex="2" id="password" name="password" size="25" class="inputbox autowidth" autocomplete="current-password"/>
+							</dd>
+							{# TODO send password / activation #}
+							{#            <!-- IF U_SEND_PASSWORD or U_RESEND_ACTIVATION --> #}
+							{#                <!-- IF U_SEND_PASSWORD --><dd><a href="{U_SEND_PASSWORD}">{{ lang('FORGOT_PASS') }}</a></dd><!-- ENDIF --> #}
+							{#                <!-- IF U_RESEND_ACTIVATION --><dd><a href="{U_RESEND_ACTIVATION}">{{ lang('RESEND_ACTIVATION') }}</a></dd><!-- ENDIF --> #}
+							{#            <!-- ENDIF --> #}
+						</dl>
+						<!-- IF CAPTCHA_TEMPLATE and S_CONFIRM_CODE -->
+						<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
+						<!-- INCLUDE {CAPTCHA_TEMPLATE} -->
+						<!-- ENDIF -->
+						<dl>
+							<dt>&nbsp;</dt>
+							<!-- IF S_AUTOLOGIN_ENABLED -->
+							<dd>
+								<label for="autologin"><input type="checkbox" name="autologin" id="autologin" tabindex="4"/> {{ lang('LOG_ME_IN') }}
+								</label></dd><!-- ENDIF -->
+							<dd>
+								<label for="viewonline"><input type="checkbox" name="viewonline" id="viewonline" tabindex="5"/> {{ lang('HIDE_ME') }}
+								</label></dd>
+						</dl>
 
-<form action="{{ login }}" method="post" id="login" data-focus="{{ USERNAME_CREDENTIAL }}">
-<div class="panel">
-	<div class="inner">
-	<div class="content">
-		<div style="display: flex">
-		<h1 style="flex: 1;">{{ lang('LOGIN') }}</h1>
-		<h3 style="align-content: end">
-			<a href="{{ ROOT_PATH }}index.php">{{ lang('FORUM_INDEX') }}</a> | <a href="{{ contact }}">{{ lang('CONTACT_US') }}</a></h3>
+						{S_LOGIN_REDIRECT}
+						{S_FORM_TOKEN_LOGIN}
+						{S_HIDDEN_FIELDS}
+						<input type="hidden" name="token" value="{{ token }}">
+						<dl>
+							<dt>&nbsp;</dt>
+							<dd><input type="submit" name="login" tabindex="6" value="{{ lang('LOGIN') }}" class="button1"/></dd>
+						</dl>
+					</fieldset>
+				</div>
+
+				<!-- IF not S_ADMIN_AUTH and PROVIDER_TEMPLATE_FILE -->
+				<!-- INCLUDE {PROVIDER_TEMPLATE_FILE} -->
+				<!-- ENDIF -->
+			</div>
 		</div>
-
-		<fieldset class="fields1">
-		{% if LOGIN_ERROR %}<div class="error">{LOGIN_ERROR}</div>{% endif %}
-		<dl>
-			<dt><label for="username">{{ lang('USERNAME') }}{{ lang('COLON') }}</label></dt>
-			<dd><input type="text" tabindex="1" name="username" id="username" size="25" value="{USERNAME}" class="inputbox autowidth" autocomplete="username" /></dd>
-		</dl>
-		<dl>
-			<dt><label for="password">{{ lang('PASSWORD') }}{{ lang('COLON') }}</label></dt>
-			<dd><input type="password" tabindex="2" id="password" name="password" size="25" class="inputbox autowidth" autocomplete="current-password" /></dd>
-			{# TODO send password / activation #}
-{#			<!-- IF U_SEND_PASSWORD or U_RESEND_ACTIVATION -->#}
-{#				<!-- IF U_SEND_PASSWORD --><dd><a href="{U_SEND_PASSWORD}">{{ lang('FORGOT_PASS') }}</a></dd><!-- ENDIF -->#}
-{#				<!-- IF U_RESEND_ACTIVATION --><dd><a href="{U_RESEND_ACTIVATION}">{{ lang('RESEND_ACTIVATION') }}</a></dd><!-- ENDIF -->#}
-{#			<!-- ENDIF -->#}
-		</dl>
-		<!-- IF CAPTCHA_TEMPLATE and S_CONFIRM_CODE -->
-			<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
-			<!-- INCLUDE {CAPTCHA_TEMPLATE} -->
-		<!-- ENDIF -->
-		<dl>
-			<dt>&nbsp;</dt>
-			<!-- IF S_AUTOLOGIN_ENABLED --><dd><label for="autologin"><input type="checkbox" name="autologin" id="autologin" tabindex="4" /> {{ lang('LOG_ME_IN') }}</label></dd><!-- ENDIF -->
-			<dd><label for="viewonline"><input type="checkbox" name="viewonline" id="viewonline" tabindex="5" /> {{ lang('HIDE_ME') }}</label></dd>
-		</dl>
-
-		{S_LOGIN_REDIRECT}
-		{S_FORM_TOKEN_LOGIN}
-		{S_HIDDEN_FIELDS}
-		<input type="hidden" name="token" value="{{ token }}">
-		<dl>
-			<dt>&nbsp;</dt>
-			<dd><input type="submit" name="login" tabindex="6" value="{{ lang('LOGIN') }}" class="button1" /></dd>
-		</dl>
-		</fieldset>
-	</div>
-
-	<!-- IF not S_ADMIN_AUTH and PROVIDER_TEMPLATE_FILE -->
-		<!-- INCLUDE {PROVIDER_TEMPLATE_FILE} -->
-	<!-- ENDIF -->
-	</div>
+	</form>
 </div>
-</form>
-
 {% include "@neodev_anubisbb/footer.html" %}

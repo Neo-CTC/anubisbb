@@ -1,66 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<title>{{ title }}</title>
+	<title>{{ SITENAME }} - {{ title ?? PAGE_TITLE }}</title>
 	<link rel="stylesheet" href="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/xess.css">
+	<link rel="stylesheet" href="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/extra.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="robots" content="noindex,nofollow">
 	<meta charset="UTF-8">
-	<style>
-		body,
-		html {
-			height: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			margin-left: auto;
-			margin-right: auto;
-		}
-
-		.centered-div {
-			text-align: center;
-		}
-
-		#status {
-			font-variant-numeric: tabular-nums;
-		}
-
-		@supports not (width: min(20rem, 90%)) {
-			#progress {
-				width: 80%;
-			}
-		}
-
-		#progress {
-			display: none;
-			width: min(20rem, 90%);
-			height: 2rem;
-			border-radius: 1rem;
-			overflow: hidden;
-			margin: 1rem 0 2rem;
-			outline-color: #b16286;
-			outline-offset: 2px;
-			outline-style: solid;
-			outline-width: 4px;
-		}
-
-		.bar-inner {
-			background-color: #b16286;
-			height: 100%;
-			width: 0;
-			transition: width 0.25s ease-in;
-		}
-	</style>
 	<script id="anubis_settings" type="application/json">
 	{
 		"version":"{{ version }}",
 		"static_prefix":"{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/",
-		"route_prefix":"{{ route_path}}",
+		"route_prefix":"{{ route_path }}",
 		"root_path":"{{ ROOT_PATH }}"
 	}
+
 	</script>
 	{% if challenge %}
-	<script id="challenge" type="application/json">
+		<script id="challenge" type="application/json">
 	{
 		"challenge": "{{ challenge }}",
 		"timestamp":"{{ timestamp }}",
@@ -70,9 +27,11 @@
 			"algorithm": "fast"
 		}
 	}
-	</script>
+
+
+		</script>
 	{% endif %}
 </head>
 <body id="top">
 <main>
-	<h1 id="title" class="centered-div">{{ title }}</h1>
+	<h1 id="title" class="centered-div">{{ title ?? MESSAGE_TITLE }}</h1>

@@ -1,0 +1,70 @@
+.anubis-img {
+	width: 100%;
+	max-width: 256px;
+}
+
+/*Some clients don't support min()*/
+@supports not (width: min(20rem, 90%)) {
+	#progress {
+		width: 80%;
+	}
+}
+
+#progress {
+	display: none;
+	width: min(20rem, 90%);
+	height: 2rem;
+	border-radius: 1rem;
+	overflow: hidden;
+	margin: 1rem 0 2rem;
+	outline-color: #b16286;
+	outline-offset: 2px;
+	outline-style: solid;
+	outline-width: 4px;
+}
+
+.bar-inner {
+	background-color: #b16286;
+	height: 100%;
+	width: 0;
+	transition: width 0.25s ease-in;
+}
+
+.centered-div .panel {
+	text-align: left;
+}
+
+.error {
+	color: #bc2a4d;
+	font-weight: bold;
+	font-size: 1em;
+}
+
+.bottom-navbar {
+	display: flex;
+	margin-top: 8px;
+	font-weight: bold;
+	font-family: var(--body-title-font);
+	font-size: larger;
+}
+
+
+.bottom-navbar div {
+	padding-left: 3px;
+	padding-right: 3px;
+	border-right: 2px var(--text) solid;
+}
+
+.bottom-navbar div:first-child {
+	text-align: right;
+	flex: 1;
+	padding-left: 0;
+}
+
+.bottom-navbar div:last-child {
+	text-align: left;
+	flex: 1;
+	padding-left: 3px;
+	padding-right: 0;
+	border: none;
+}

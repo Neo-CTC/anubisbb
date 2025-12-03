@@ -97,12 +97,10 @@ class pages_controller
 		$this->language->add_lang('common', 'neodev/anubisbb');
 
 		// Routing but without sid
-		global $phpbb_root_path;
 		$this->routes = [
 			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
 			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
 			'cc'      => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'c_check'], true, ''),
-			'index'   => $phpbb_root_path,
 		];
 	}
 
@@ -110,8 +108,8 @@ class pages_controller
 	{
 		// Make paths to the other pages
 		$this->template->assign_vars([
-			'contact' => $this->routes['contact'],
-			'login'   => $this->routes['login'],
+			'contact_path' => $this->routes['contact'],
+			'login_path'   => $this->routes['login'],
 		]);
 
 		switch ($name)
@@ -131,7 +129,7 @@ class pages_controller
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_LOGIN_TITLE'));
 
 				// TODO: redirects
-				$redirect = $this->request->variable('redirect', '') ?: $this->routes['index'];
+				$redirect = $this->request->variable('redirect', '') ?: './';
 
 				login_box($redirect);
 

@@ -55,6 +55,8 @@ class api_controller
 
 	private $db;
 
+	private $routes;
+
 	/**
 	 * Constructor
 	 *
@@ -67,13 +69,19 @@ class api_controller
 		$this->config            = $config;
 		$this->controller_helper = $helper;
 		$this->request           = $request;
-		$this->template      = $template;
-		$this->user          = $user;
-		$this->db            = $db;
-		$this->redirect      = '';
+		$this->template          = $template;
+		$this->user              = $user;
+		$this->db                = $db;
+		$this->redirect          = '';
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
+
+		$this->routes = [
+			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
+			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
+			'pass'    => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
+		];
 	}
 
 	/**
@@ -94,7 +102,7 @@ class api_controller
 		}
 
 		// Bad character test (control characters, backslash)
-		if (preg_match('/[\x00-\x1F\x5C]/',$redirect))
+		if (preg_match('/[\x00-\x1F\x5C]/', $redirect))
 		{
 			$this->logger->log('Error: invalid redirect');
 			return $this->build_error_page('Invalid request');
@@ -154,8 +162,10 @@ class api_controller
 
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
-			'route_path'  => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
-			'version'     => $this->anubis->version,
+			'route_path'   => $this->routes['pass'],
+			'login_path'   => $this->routes['login'],
+			'contact_path' => $this->routes['contact'],
+			'version'      => $this->anubis->version,
 		]);
 
 		// Fetch the challenge hash
@@ -208,7 +218,7 @@ class api_controller
 
 	public function benchmark()
 	{
-		$this->template->assign_var('title','Speed test');
+		$this->template->assign_var('title', 'Speed test');
 		return $this->controller_helper->render('@neodev_anubisbb/benchmark.html');
 	}
 }

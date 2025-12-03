@@ -212,7 +212,7 @@ class intercept implements EventSubscriberInterface
 					// Everyone has access to the cron and feed routes
 					// user route is used for deleting cookies and forgotten passwords
 					// And of course don't block myself
-					if (preg_match('~^/(?:cron|feed|anubis|user|help)(?:/|$)~', $route))
+					if (preg_match('~^/(?:cron|feed|anubis/(?:api|pages/\w+)|user|help)(?:/|$)~', $route))
 					{
 						return true;
 					}
@@ -266,7 +266,7 @@ class intercept implements EventSubscriberInterface
 				case 'app':
 					// Grab the route
 					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-					if (preg_match('~^/(?:feed(?:/|$)|anubis/)~', $route))
+					if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages/\w+$))~', $route))
 					{
 						return true;
 					}

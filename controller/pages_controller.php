@@ -101,6 +101,7 @@ class pages_controller
 		$this->routes = [
 			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
 			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
+			'cc'      => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'c_check'], true, ''),
 			'index'   => $phpbb_root_path,
 		];
 	}
@@ -122,39 +123,8 @@ class pages_controller
 				// TODO: logging
 				// TODO: set user page to anubis login for view online page
 
-				/*
-				 * Normally we would kill the user session until the user passes the Anubis challenge.
-				 * Unfortunately, the login box requires a user session to work. Therefore, we run a
-				 * cookie check. If the user isn't saving cookies, then there's no point in saving the
-				 * user session.
-				 */
-				$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
-				$cc_page   = $this->request->is_set('cc', request_interface::GET);
-
-				// Missing or stale cookie
-				if (!$cc_cookie || $this->anubis->jwt_unpack($cc_cookie) === false)
-				{
-					$this->user->session_kill(false);
-
-					// No cookie and yet we are on the cookie check page. Cookie check, failed!
-					if ($cc_page)
-					{
-						return $this->build_error_page('Cookies disabled.');
-					}
-
-					// Bake a new cookie
-					$t  = time();
-					$e  = $t + 3600; // One hour
-					$cc = $this->anubis->jwt_create('cookies enabled', $t, $e);
-					$this->user->set_cookie('anubisbb_cc', $cc, $e);
-					redirect($this->routes['login'] . '?cc');
-				}
-
-				else if ($cc_page)
-				{
-					// Let's leave the cookie check page
-					redirect($this->routes['login']);
-				}
+				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
+				$this->cookie_check($name);
 
 				// TODO: follow redirects
 
@@ -168,10 +138,8 @@ class pages_controller
 				return $this->build_error_page('Login box error');
 
 			case 'contact':
-				// TODO: cookie check
-				// TODO: kill session
-				// TODO: csf token
-
+				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
+				$this->cookie_check($name);
 
 				$this->language->add_lang('memberlist');
 
@@ -214,10 +182,50 @@ class pages_controller
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_OH_NO'));
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
 
+			case 'c_check':
+				$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
+				$cc_cookie = $this->anubis->jwt_unpack($cc_cookie);
+
+				// The user is on this page and still no cookie? Cookie check, FAILED!
+				if ($cc_cookie === false)
+				{
+					return $this->build_error_page('Cookies not enabled');
+				}
+
+				// Send user back to original page
+				redirect($this->routes[$cc_cookie['data']['page']]);
+
 			default:
 				return $this->build_error_page('Page not found');
 		}
 	}
+
+	private function cookie_check($base_page)
+	{
+		/*
+		 * Normally we would kill the user session until the user passes the Anubis challenge.
+		 * Unfortunately, the login and contact pages requires a user session to work. Therefore, we
+		 * run a cookie check. If the user isn't saving cookies, then there's no point in saving the
+		 * user session.
+		 */
+
+		$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
+		$cc_cookie = $this->anubis->jwt_unpack($cc_cookie);
+
+		if ($cc_cookie !== false && $cc_cookie['data']['page'] === $base_page)
+		{
+			return;
+		}
+
+		// Missing or stale cookie, or we're on a different page.
+		$this->user->session_kill(false);
+		$t  = time();
+		$e  = $t + 3600; // 1 hour
+		$cc = $this->anubis->jwt_create(['page' => $base_page], $t, $e);
+		$this->user->set_cookie('anubisbb_cc', $cc, $e);
+		redirect($this->routes['cc']);
+	}
+
 
 	private function build_error_page($error_message)
 	{

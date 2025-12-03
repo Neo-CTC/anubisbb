@@ -179,7 +179,7 @@ class anubis_core
 	private function cookie_check()
 	{
 		// JSON Web Token
-		$jwt = $this->request->variable($this->cookie_name, '', true, request_interface::COOKIE);
+		$jwt = $this->request->variable($this->cookie_name, '', false, request_interface::COOKIE);
 		if (!$jwt)
 		{
 			return false;

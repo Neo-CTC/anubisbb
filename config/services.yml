@@ -45,11 +45,18 @@ services:
         tags:
             - { name: event.listener }
 
+    neodev.anubisbb.locator:
+        class: neodev\anubisbb\event\page_mapping
+        arguments:
+            - '@language'
+        tags:
+            - { name: event.listener }
+
     neodev.anubisbb.cron.task.logrotate:
         class: neodev\anubisbb\cron\task\logrotate
         arguments:
             - '@config'
         calls:
-            - [set_name, [cron.task.neodev.anubisbb.logrotate]]
+            - [ set_name, [ cron.task.neodev.anubisbb.logrotate ] ]
         tags:
             - { name: cron.task }

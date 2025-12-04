@@ -16,7 +16,7 @@ use neodev\anubisbb\core\logger;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
-use phpbb\path_helper;
+use phpbb\language\language;
 use phpbb\request\request;
 use phpbb\template\template;
 use phpbb\user;
@@ -26,45 +26,21 @@ use phpbb\user;
  */
 class api_controller
 {
-	/** @var \phpbb\config\config */
 	private $config;
-
-	/** @var \phpbb\controller\helper */
 	private $controller_helper;
-
-	/** @var \phpbb\template\template */
-	private $template;
-	/**
-	 * @var \neodev\anubisbb\core\anubis_core
-	 */
-	private $anubis;
-	private $logger;
-
-	/**
-	 * @var string
-	 */
-	private $redirect;
-	/**
-	 * @var \phpbb\request\request
-	 */
 	private $request;
-	/**
-	 * @var \phpbb\user
-	 */
+	private $template;
 	private $user;
 
 	private $db;
+	private $language;
 
+	private $anubis;
+	private $logger;
+	private $redirect;
 	private $routes;
 
-	/**
-	 * Constructor
-	 *
-	 * @param \phpbb\config\config     $config   Config object
-	 * @param \phpbb\controller\helper $helper   Controller helper object
-	 * @param \phpbb\template\template $template Template object
-	 */
-	public function __construct(config $config, controller_helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db)
+	public function __construct(config $config, controller_helper $helper, request $request, template $template, user $user, driver_interface $db, language $language)
 	{
 		$this->config            = $config;
 		$this->controller_helper = $helper;
@@ -72,10 +48,14 @@ class api_controller
 		$this->template          = $template;
 		$this->user              = $user;
 		$this->db                = $db;
-		$this->redirect          = '';
+		$this->language          = $language;
+
+		$this->redirect = '';
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
+
+		$this->language->add_lang('common', 'neodev/anubisbb');
 
 		$this->routes = [
 			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
@@ -179,7 +159,7 @@ class api_controller
 				'error_message' => $this->anubis->error,
 				'retry_link'    => build_url(), // Basically a link to the current url
 			]);
-			$this->logger->log('Error: '.$this->anubis->error);
+			$this->logger->log('Error: ' . $this->anubis->error);
 			return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');
 		}
 		else

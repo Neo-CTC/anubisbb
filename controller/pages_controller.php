@@ -10,14 +10,11 @@
 
 namespace neodev\anubisbb\controller;
 
-use Exception;
 use neodev\anubisbb\core\anubis_core;
 use neodev\anubisbb\core\logger;
 
-use phpbb\auth\auth;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
-use phpbb\db\driver\driver_interface;
 use phpbb\language\language;
 use phpbb\path_helper;
 use phpbb\request\request;
@@ -32,43 +29,15 @@ use messenger;
  */
 class pages_controller
 {
-	/** @var \phpbb\config\config */
 	private $config;
-
-	/** @var \phpbb\controller\helper */
 	private $controller_helper;
-
-	/** @var \phpbb\template\template */
-	private $template;
-	/**
-	 * @var \neodev\anubisbb\core\anubis_core
-	 */
-	private $anubis;
-	private $logger;
-
-	/**
-	 * @var string
-	 */
-	private $redirect;
-	/**
-	 * @var \phpbb\request\request
-	 */
 	private $request;
-	/**
-	 * @var \phpbb\path_helper
-	 */
-	private $web_root_path;
-	/**
-	 * @var \phpbb\user
-	 */
+	private $template;
 	private $user;
-
-	private $db;
-
-	private $auth;
-
 	private $language;
 
+	private $anubis;
+	private $logger;
 	private $routes;
 
 	/**
@@ -78,25 +47,21 @@ class pages_controller
 	 * @param \phpbb\controller\helper $helper   Controller helper object
 	 * @param \phpbb\template\template $template Template object
 	 */
-	public function __construct(config $config, controller_helper $helper, request $request, template $template, path_helper $path_helper, user $user, driver_interface $db, auth $auth, language $language)
+	public function __construct(config $config, controller_helper $helper, request $request, template $template, user $user, language $language)
 	{
 		$this->config            = $config;
 		$this->controller_helper = $helper;
 		$this->request           = $request;
 		$this->template          = $template;
 		$this->user              = $user;
-		$this->db                = $db;
-		$this->auth              = $auth;
 		$this->language          = $language;
-
-		$this->web_root_path = $path_helper->get_web_root_path();
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 
 		$this->language->add_lang('common', 'neodev/anubisbb');
 
-		// Routing but without sid
+		// Set session id to '' or it will append a session id
 		$this->routes = [
 			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
 			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
@@ -114,35 +79,24 @@ class pages_controller
 
 		switch ($name)
 		{
-			// Login page when there is an error or javascript is disabled
 			case 'login':
-				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
 				$this->logger->log('Login page');
 
 				$this->language->add_lang('ucp');
-
-				// Put our styles first to override login box template
-				$this->template->set_style(['ext/neodev/anubisbb/styles', 'styles']);
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_LOGIN_TITLE'));
-
-				// TODO: redirects
-				$redirect = $this->request->variable('redirect', '') ?: './';
-
-				login_box($redirect);
+				login_box('./');
 
 				// Just in case
 				return $this->build_error_page('Login box error');
 
 			case 'contact':
-				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
 				$this->logger->log('Contact page');
 
-				$this->language->add_lang('memberlist');
-
 				if ($this->request->is_set_post('submit'))
 				{
+					// Copied from memberlist.php
 					if (!class_exists('messenger'))
 					{
 						global $phpbb_root_path, $phpEx, $phpbb_container;
@@ -170,7 +124,8 @@ class pages_controller
 					add_form_key('memberlist_email');
 				}
 
-				$this->template->assign_var('title', $this->language->lang('CONTACT_ADMIN'));
+				$this->language->add_lang('memberlist');
+				$this->template->assign_var('title', $this->language->lang('ANUBISBB_CONTACT_TITLE'));
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
 
 			case 'nojs':
@@ -230,17 +185,12 @@ class pages_controller
 		redirect($this->routes['cc']);
 	}
 
-
 	private function build_error_page($error_message)
 	{
 		$this->template->assign_vars([
 			'title'         => 'Oh noes!',
 			'error_message' => $error_message,
-			// TODO: retry/redirect somewhere other than index
-			'retry_link'    => $this->web_root_path . 'index.php',
 		]);
-
-		// Send to Symfony for rendering
 		return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');
 	}
 }

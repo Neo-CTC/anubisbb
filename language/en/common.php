@@ -35,8 +35,9 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, [
-	'ANUBISBB_LOGIN_TITLE'  => 'phpBB Login',
-	'ANUBISBB_OH_NO'        => 'Oh noes!',
-	'ANUBISBB_NOJS_EXPLAIN' => 'Sadly, you must enable JavaScript to get past this challenge. This is required because AI companies have changed the social contract around how website hosting works. A no-JS solution is a work-in-progress.',
+	'ANUBISBB_LOGIN_TITLE'   => 'Login to phpBB',
+	'ANUBISBB_CONTACT_TITLE' => 'Contact the staff',
+	'ANUBISBB_OH_NO'         => 'Oh noes!',
+	'ANUBISBB_NOJS_EXPLAIN'  => 'Sadly, you must enable JavaScript to get past this challenge. This is required because AI companies have changed the social contract around how website hosting works. A no-JS solution is a work-in-progress.',
 
 ]);

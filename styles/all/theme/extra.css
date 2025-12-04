@@ -42,29 +42,30 @@
 
 .bottom-navbar {
 	display: flex;
+	justify-content: center;
 	margin-top: 8px;
 	font-weight: bold;
 	font-family: var(--body-title-font);
 	font-size: larger;
 }
 
-
 .bottom-navbar div {
-	padding-left: 3px;
-	padding-right: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
 	border-right: 2px var(--text) solid;
 }
 
 .bottom-navbar div:first-child {
-	text-align: right;
-	flex: 1;
 	padding-left: 0;
 }
 
 .bottom-navbar div:last-child {
-	text-align: left;
-	flex: 1;
-	padding-left: 3px;
+	padding-left: 5px;
 	padding-right: 0;
 	border: none;
+}
+
+.panel {
+	display: flex;
+	justify-content: center;
 }

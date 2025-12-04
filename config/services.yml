@@ -17,10 +17,7 @@ services:
             - '@controller.helper'
             - '@request'
             - '@template'
-            - '@path_helper'
             - '@user'
-            - '@dbal.conn'
-            - '@auth'
             - '@language'
 
     neodev.anubisbb.controller.acp:

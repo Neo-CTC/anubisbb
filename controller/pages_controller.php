@@ -116,9 +116,6 @@ class pages_controller
 		{
 			// Login page when there is an error or javascript is disabled
 			case 'login':
-				// TODO: logging
-				// TODO: set user page to anubis login for view online page
-
 				// Continue if cookies are found or bake new cookies and redirect to the cookie check page
 				$this->cookie_check($name);
 				$this->logger->log('Login page');
@@ -180,6 +177,10 @@ class pages_controller
 				// Kill the new session, we don't need it
 				$this->user->session_kill(false);
 				$this->logger->log('No JavaScript page');
+
+				$ref = $this->request->header('Referer', '');
+				$ref = $this->user->host === parse_url($ref, PHP_URL_HOST) ? $ref : '';
+				$this->template->assign_var('referer', $ref);
 
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_OH_NO'));
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');

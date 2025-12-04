@@ -5,6 +5,8 @@
 		{{ lang('ANUBISBB_NOJS_EXPLAIN') }}
 	</p>
 
+	{% if referer %}<p><a href="{{ referer }}">Click to retry once JavaScript is enabled</a></p>{% endif %}
+
 	<details style="margin-bottom: 16px;">
 		<summary>Why am I seeing this?</summary>
 		<p>You are seeing this because the administrator of this website has set up

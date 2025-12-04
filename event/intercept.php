@@ -19,7 +19,9 @@ use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
 use phpbb\request\request;
 use phpbb\user;
+
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * AntiBot Event listener.
@@ -296,8 +298,8 @@ class intercept implements EventSubscriberInterface
 
 	private function intercept()
 	{
-		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge');
-		$no_js  = $this->controller_helper->route('neodev_anubisbb_pages',['name'=>'nojs'],true,false,0);
+		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge', [], true, '');
+		$no_js          = $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'nojs'], true, '', UrlGeneratorInterface::ABSOLUTE_URL);
 
 		// Prevent an infinite loop: don't cache the "Loading..." redirect to Anubis.
 		// Otherwise the user will keep being sent back to Anubis, even after they have a valid cookie.

@@ -6,9 +6,9 @@ services:
             - '@controller.helper'
             - '@request'
             - '@template'
-            - '@path_helper'
             - '@user'
             - '@dbal.conn'
+            - '@language'
 
     neodev.anubisbb.controller.pages:
         class: neodev\anubisbb\controller\pages_controller

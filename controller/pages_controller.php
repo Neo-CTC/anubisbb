@@ -40,13 +40,6 @@ class pages_controller
 	private $logger;
 	private $routes;
 
-	/**
-	 * Constructor
-	 *
-	 * @param \phpbb\config\config     $config   Config object
-	 * @param \phpbb\controller\helper $helper   Controller helper object
-	 * @param \phpbb\template\template $template Template object
-	 */
 	public function __construct(config $config, controller_helper $helper, request $request, template $template, user $user, language $language)
 	{
 		$this->config            = $config;

@@ -20,24 +20,27 @@
 								<input type="password" tabindex="2" id="password" name="password" size="25" autocomplete="current-password"/>
 							</dd>
 							{# TODO send password / activation #}
-							{#            <!-- IF U_SEND_PASSWORD or U_RESEND_ACTIVATION --> #}
-							{#                <!-- IF U_SEND_PASSWORD --><dd><a href="{U_SEND_PASSWORD}">{{ lang('FORGOT_PASS') }}</a></dd><!-- ENDIF --> #}
-							{#                <!-- IF U_RESEND_ACTIVATION --><dd><a href="{U_RESEND_ACTIVATION}">{{ lang('RESEND_ACTIVATION') }}</a></dd><!-- ENDIF --> #}
-							{#            <!-- ENDIF --> #}
+							{#  <!-- IF U_SEND_PASSWORD or U_RESEND_ACTIVATION --> #}
+							{#      <!-- IF U_SEND_PASSWORD --><dd><a href="{U_SEND_PASSWORD}">{{ lang('FORGOT_PASS') }}</a></dd><!-- ENDIF --> #}
+							{#      <!-- IF U_RESEND_ACTIVATION --><dd><a href="{U_RESEND_ACTIVATION}">{{ lang('RESEND_ACTIVATION') }}</a></dd><!-- ENDIF --> #}
+							{#  <!-- ENDIF --> #}
 						</dl>
-						<!-- IF CAPTCHA_TEMPLATE and S_CONFIRM_CODE -->
-						<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
-						<!-- INCLUDE {CAPTCHA_TEMPLATE} -->
-						<!-- ENDIF -->
+						{% if CAPTCHA_TEMPLATE and S_CONFIRM_CODE %}
+							<!-- DEFINE $CAPTCHA_TAB_INDEX = 3 -->
+							{% include CAPTCHA_TEMPLATE %}
+						{% endif %}
 						<dl>
 							<dt>&nbsp;</dt>
-							<!-- IF S_AUTOLOGIN_ENABLED -->
-							<dd>
-								<label for="autologin"><input type="checkbox" name="autologin" id="autologin" tabindex="4"/> {{ lang('LOG_ME_IN') }}
-								</label></dd><!-- ENDIF -->
+							{% if S_AUTOLOGIN_ENABLED %}
+								<dd>
+									<label for="autologin"><input type="checkbox" name="autologin" id="autologin" tabindex="4"/> {{ lang('LOG_ME_IN') }}
+									</label>
+								</dd>
+							{% endif %}
 							<dd>
 								<label for="viewonline"><input type="checkbox" name="viewonline" id="viewonline" tabindex="5"/> {{ lang('HIDE_ME') }}
-								</label></dd>
+								</label>
+							</dd>
 						</dl>
 
 						{S_LOGIN_REDIRECT}
@@ -51,9 +54,10 @@
 					</fieldset>
 				</div>
 
-				<!-- IF not S_ADMIN_AUTH and PROVIDER_TEMPLATE_FILE -->
-				<!-- INCLUDE {PROVIDER_TEMPLATE_FILE} -->
-				<!-- ENDIF -->
+				{# What is this used for? #}
+				{% if not S_ADMIN_AUTH and PROVIDER_TEMPLATE_FILE %}
+					{% include PROVIDER_TEMPLATE_FILE %}
+				{% endif %}
 			</div>
 		</div>
 	</form>

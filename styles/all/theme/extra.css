@@ -17,10 +17,8 @@
 	border-radius: 1rem;
 	overflow: hidden;
 	margin: 1rem 0 2rem;
-	outline-color: #b16286;
 	outline-offset: 2px;
-	outline-style: solid;
-	outline-width: 4px;
+	outline: #b16286 solid 4px;
 }
 
 .bar-inner {

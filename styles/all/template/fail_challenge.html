@@ -2,7 +2,6 @@
 <div class="centered-div">
 	<img class="anubis-img" id="image" alt="Sad Anubis" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/reject.webp">
 	<p>{{ error_message }}</p>
-	<p><a href="{{ ROOT_PATH }}index.php">Try again</a> or if you believe you should not be blocked, please <a href="{{ contact_path }}">contact
-			the administrator</a></p>
+	<p>{{ lang('ANUBISBB_FAIL_TEXT', retry_link|default(ROOT_PATH ~ 'index.php'), contact_path) }}</p>
 </div>
 {% include "@neodev_anubisbb/footer.html" %}

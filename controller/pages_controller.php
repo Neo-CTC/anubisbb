@@ -81,7 +81,7 @@ class pages_controller
 				login_box('./');
 
 				// Just in case
-				return $this->build_error_page('Login box error');
+				return $this->build_error_page('Login box error(?)');
 
 			case 'contact':
 				$this->cookie_check($name);
@@ -141,14 +141,14 @@ class pages_controller
 				if ($cc_cookie === false)
 				{
 					$this->logger->log('Cookie check: cookies disabled');
-					return $this->build_error_page('Cookies not enabled');
+					return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_COOKIES_DISABLED'));
 				}
 
 				// Send user back to original page
 				redirect($this->routes[$cc_cookie['data']['page']]);
 
 			default:
-				return $this->build_error_page('Page not found');
+				return $this->build_error_page($this->language->lang('PAGE_NOT_FOUND'));
 		}
 	}
 
@@ -181,7 +181,7 @@ class pages_controller
 	private function build_error_page($error_message)
 	{
 		$this->template->assign_vars([
-			'title'         => 'Oh noes!',
+			'title'         => $this->language->lang('ANUBISBB_OH_NO'),
 			'error_message' => $error_message,
 		]);
 		return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');

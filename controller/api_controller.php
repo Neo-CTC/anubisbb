@@ -78,14 +78,14 @@ class api_controller
 		if ($redirect === '')
 		{
 			$this->logger->log('Error: missing redirect');
-			return $this->build_error_page('Invalid request');
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
 		}
 
 		// Bad character test (control characters, backslash)
 		if (preg_match('/[\x00-\x1F\x5C]/', $redirect))
 		{
 			$this->logger->log('Error: invalid redirect');
-			return $this->build_error_page('Invalid request');
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
 		}
 
 
@@ -94,7 +94,7 @@ class api_controller
 		if ($url_parts === false || $url_parts['host'] !== $this->user->host)
 		{
 			$this->logger->log('Error: offsite redirect');
-			return $this->build_error_page('Invalid request');
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
 		}
 
 		// Somehow the redirect points back to the api??
@@ -124,7 +124,7 @@ class api_controller
 		{
 			// TODO: kill sessions for pass as well on failure
 			$this->logger->log('Fail: ' . $this->anubis->error);
-			return $this->build_error_page('Invalid request');
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
 		}
 	}
 
@@ -166,7 +166,7 @@ class api_controller
 		{
 			// Display challenge page
 			$this->template->assign_vars([
-				'title'      => 'Making sure you&#39;re not a bot!',
+				'title'      => $this->language->lang('ANUBISBB_CHALLENGE_TITLE'),
 				'difficulty' => $this->config['anubisbb_difficulty'],
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
@@ -186,7 +186,7 @@ class api_controller
 	private function build_error_page($error_message)
 	{
 		$this->template->assign_vars([
-			'title'         => 'Oh noes!',
+			'title'         => $this->language->lang('ANUBISBB_OH_NO'),
 			'error_message' => $error_message,
 			// TODO: test this. it should lead to the same page the visitor was just at. Which should allow them to retry the challenge.
 			'retry_link'    => $this->redirect,

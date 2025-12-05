@@ -210,6 +210,8 @@ class intercept implements EventSubscriberInterface
 
 		// Intercept request and send user to challenge page
 		$this->logger->log('Intercept (late)');
+
+		$this->user->session_kill(false);
 		$this->intercept();
 	}
 
@@ -221,7 +223,6 @@ class intercept implements EventSubscriberInterface
 
 	private function intercept()
 	{
-		$this->user->session_kill(false);
 		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge', [], true, '');
 		$no_js          = $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'nojs'], true, '', UrlGeneratorInterface::ABSOLUTE_URL);
 

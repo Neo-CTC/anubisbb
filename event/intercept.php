@@ -32,7 +32,7 @@ class intercept implements EventSubscriberInterface
 	{
 		return [
 			'core.common'               => 'early_intercept',
-			'core.user_setup_after'     => 'anubis_check', // We want to run on every page
+			'core.user_setup_after'     => 'late_intercept', // We want to run on every page
 			'core.session_kill_after'   => 'logout', // User just logged out, set variable to remember that
 			'core.session_create_after' => 'logout_check', // After the user logged out a new session was created, catch it.
 			'core.session_gc_after'     => 'session_cleanup', // Cleanup unverified visitors
@@ -114,7 +114,8 @@ class intercept implements EventSubscriberInterface
 		}
 
 		// Check if we can skip this request
-		switch ($this->path_normalize())
+		$path_normalize = $this->path_normalize();
+		switch ($path_normalize)
 		{
 			case 'app':
 				// Grab the route
@@ -147,7 +148,7 @@ class intercept implements EventSubscriberInterface
 		$this->intercept();
 	}
 
-	public function anubis_check()
+	public function late_intercept()
 	{
 		// TODO: Deny bad bots
 
@@ -163,17 +164,64 @@ class intercept implements EventSubscriberInterface
 			return;
 		}
 
-		// Skip paths
-		if ($this->skip_path($this->user->page))
+		// Check if we can skip this request
+		$path_normalize = $this->path_normalize();
+		switch ($path_normalize)
 		{
-			return;
+			// TODO: check bypasses
+			case 'app':
+
+				// Grab the route
+				$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
+
+				// Everyone has access to the cron and feed routes
+				// user route is used for deleting cookies and forgotten passwords
+				// And of course don't block myself
+				if (preg_match('~^/(?:cron|feed|user|help|anubis/(?:api|pages)/\w+)(?:/|$)~', $route))
+				{
+					return;
+				}
+
+			break;
+
+			// Allow visitors to call for help
+			case 'memberlist':
+				$mode = $this->request->variable('mode', '');
+
+				if ($mode == 'contactadmin')
+				{
+					return;
+				}
+			break;
+
+			// Allow visitors to login
+			case 'ucp':
+				$mode = $this->request->variable('mode', '');
+
+				// You are on this site...
+				// but we do not grant you the rank of visitor
+				if (in_array($mode, ['privacy', 'terms']))
+				{
+					$this->user->session_kill(false);
+					return;
+				}
+
+				// Ignore login pages
+				if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
+				{
+					return;
+				}
+			break;
+
+			case 'download/file':
+				if ($this->config['anubisbb_hot_linking'] === '1')
+				{
+					return;
+				}
 		}
 
-		// Kill the session to remove user from session table
-		$this->user->session_kill(false);
-
 		// Intercept request and send user to challenge page
-		$this->logger->log('Intercept');
+		$this->logger->log('Intercept (late)');
 		$this->intercept();
 	}
 
@@ -216,80 +264,6 @@ class intercept implements EventSubscriberInterface
 	{
 		// Need to normalize the names due to weird paths for app.php and adm/index.php
 		return substr($this->user->page['page'], 0, strpos($this->user->page['page'], '.'));
-	}
-
-	private function skip_path($early = false)
-	{
-		// Skip import pages
-		// Need to normalize the names due to weird paths for app.php and adm/index.php
-		$page_normalized = substr($this->user->page['page'], 0, strpos($this->user->page['page'], '.'));
-
-		// Not early
-		if (!$early)
-		{
-			// When early intercept is off, allow important pages to bypass.
-			// Namely, the login and contact pages, plus a few others.
-			switch ($page_normalized)
-			{
-				// Meh, should be fine
-				// Skip the administration zone
-				// case 'adm/index':
-				// 	return;
-				// break;
-
-				// Deal with routed pages, aka app.php
-				case 'app':
-
-					// Grab the route
-					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-
-					// Everyone has access to the cron and feed routes
-					// user route is used for deleting cookies and forgotten passwords
-					// And of course don't block myself
-					if (preg_match('~^/(?:cron|feed|anubis/(?:api|pages/\w+)|user|help)(?:/|$)~', $route))
-					{
-						return true;
-					}
-
-				break;
-
-				// Allow visitors to call for help
-				case 'memberlist':
-					$mode = $this->request->variable('mode', '');
-
-					if ($mode == 'contactadmin')
-					{
-						return true;
-					}
-				break;
-
-				// Allow visitors to login
-				case 'ucp':
-					$mode = $this->request->variable('mode', '');
-
-					// You are on this site...
-					// but we do not grant you the rank of visitor
-					if (in_array($mode, ['privacy', 'terms']))
-					{
-						$this->user->session_kill(false);
-						return true;
-					}
-
-					// Ignore login pages
-					if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
-					{
-						return true;
-					}
-				break;
-
-				case 'download/file':
-					if ($this->config['anubisbb_hot_linking'] === '1')
-					{
-						return true;
-					}
-			}
-		}
-		return false;
 	}
 
 	private function intercept()

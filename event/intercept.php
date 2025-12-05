@@ -16,26 +16,19 @@ use neodev\anubisbb\core\logger;
 use phpbb\cache\service as cache;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
-use phpbb\db\driver\driver_interface;
 use phpbb\request\request;
 use phpbb\user;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-/**
- * AntiBot Event listener.
- */
 class intercept implements EventSubscriberInterface
 {
 	public static function getSubscribedEvents()
 	{
 		return [
-			'core.common'               => 'early_intercept',
-			'core.user_setup_after'     => 'late_intercept', // We want to run on every page
-			'core.session_kill_after'   => 'logout', // User just logged out, set variable to remember that
-			'core.session_create_after' => 'logout_check', // After the user logged out a new session was created, catch it.
-			'core.session_gc_after'     => 'session_cleanup', // Cleanup unverified visitors
+			'core.common'           => 'early_intercept',
+			'core.user_setup_after' => 'late_intercept', // We want to run on every page
 		];
 	}
 
@@ -43,25 +36,18 @@ class intercept implements EventSubscriberInterface
 	private $request;
 	private $config;
 	private $controller_helper;
-	private $db;
 	private $cache;
 
-	/**
-	 * @var \neodev\anubisbb\core\anubis_core
-	 */
 	private $anubis;
 	private $logger;
 
-	public function __construct(user $user, request $request, config $config, controller_helper $helper, driver_interface $db, cache $cache)
+	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache)
 	{
-		$this->user    = $user;
-		$this->request = $request;
-		$this->config  = $config;
-
+		$this->user              = $user;
+		$this->request           = $request;
+		$this->config            = $config;
 		$this->controller_helper = $helper;
-
-		$this->db    = $db;
-		$this->cache = $cache;
+		$this->cache             = $cache;
 
 		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
@@ -223,41 +209,6 @@ class intercept implements EventSubscriberInterface
 		// Intercept request and send user to challenge page
 		$this->logger->log('Intercept (late)');
 		$this->intercept();
-	}
-
-	public function logout($event)
-	{
-		$new = $event['new_session'];
-		$uid = $event['user_id'];
-		if ($new && $uid > 1)
-		{
-			// The user is currently in the middle of logging out, and a new session will be created for them
-			// This lets us remember the logout and bake the user a new cookie once the new session is ready
-			define('IN_LOGOUT', true);
-		}
-	}
-
-	public function logout_check()
-	{
-		// User has just logged out, make them a cookie
-		if (defined('IN_LOGOUT'))
-		{
-			$this->anubis->logout_cookie();
-
-			$data = ['anubisbb_pass' => 1];
-			$sql  = 'UPDATE ' . SESSIONS_TABLE . '
-				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
-				WHERE session_id = "' . $this->user->data['session_id'] . '"';
-			$this->db->sql_query($sql);
-		}
-	}
-
-	public function session_cleanup()
-	{
-		// Remove unverified visitors sessions after a period of inactivity.
-		$ttl = time() - $this->anubis::GUEST_TTL;
-		$sql = 'DELETE FROM ' . SESSIONS_TABLE . ' WHERE session_user_id = ' . ANONYMOUS . ' and anubisbb_pass = 0 and session_time < ' . $ttl;
-		$this->db->sql_query($sql);
 	}
 
 	private function path_normalize()

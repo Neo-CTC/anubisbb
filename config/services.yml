@@ -30,14 +30,13 @@ services:
             - '@template'
             - '@user'
 
-    neodev.anubisbb.listener:
+    neodev.anubisbb.interceptor:
         class: neodev\anubisbb\event\intercept
         arguments:
             - '@user'
             - '@request'
             - '@config'
             - '@controller.helper'
-            - '@dbal.conn'
             - '@cache'
         tags:
             - { name: event.listener }
@@ -46,6 +45,17 @@ services:
         class: neodev\anubisbb\event\page_mapping
         arguments:
             - '@language'
+        tags:
+            - { name: event.listener }
+
+    neodev.anubisbb.sessions:
+        class: neodev\anubisbb\event\sessions
+        arguments:
+            - '@user'
+            - '@request'
+            - '@config'
+            - '@dbal.conn'
+            - '@cache'
         tags:
             - { name: event.listener }
 

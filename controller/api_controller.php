@@ -75,54 +75,29 @@ class api_controller
 	{
 		$redirect = $this->request->variable('redir', '');
 
-		if ($redirect === '')
+		// The redirect hostname must match that of the server, or we default to the index
+		$url_host       = parse_url($redirect, PHP_URL_HOST);
+		$this->redirect = $url_host === $this->user->host ? $redirect : 'index.php';
+
+		// Somehow the redirect points back to us??
+		if (preg_match('~/anubis/(api|pages)/~', $this->redirect))
 		{
-			$this->logger->log('Error: missing redirect');
-			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
+			$this->redirect = 'index.php';
 		}
-
-		// Bad character test (control characters, backslash)
-		if (preg_match('/[\x00-\x1F\x5C]/', $redirect))
-		{
-			$this->logger->log('Error: invalid redirect');
-			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
-		}
-
-
-		// The redirect hostname must match that of the server
-		$url_parts = parse_url($redirect);
-		if ($url_parts === false || $url_parts['host'] !== $this->user->host)
-		{
-			$this->logger->log('Error: offsite redirect');
-			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
-		}
-
-		// Somehow the redirect points back to the api??
-		if (strpos($redirect, 'anubis/api/') !== false)
-		{
-			// Send them back to the forum index
-			$redirect = 'index.php';
-		}
-
-		$this->redirect = $redirect;
-
-		$this->template->assign_var('version', $this->anubis->version);
 
 		if ($this->anubis->pass_challenge())
 		{
-			$data = ['anubisbb_pass' => 1];
+			// Tell phpBB not to delete this guest account at the next cleanup
 			$sql = 'UPDATE ' . SESSIONS_TABLE . ' 
-				SET ' . $this->db->sql_build_array('UPDATE', $data) . '
+				SET ' . $this->db->sql_build_array('UPDATE', ['anubisbb_pass' => 1]) . '
 				WHERE session_id = "' . $this->user->data['session_id'] . '"';
 			$this->db->sql_query($sql);
 
-			// TODO: test redirects, make sure we can't go offsite
 			$this->logger->log('Pass');
-			redirect($redirect);
+			redirect($this->redirect);
 		}
 		else
 		{
-			// TODO: kill sessions for pass as well on failure
 			$this->logger->log('Fail: ' . $this->anubis->error);
 			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_CHALLENGE_FAILED'));
 		}
@@ -185,6 +160,7 @@ class api_controller
 	 */
 	private function build_error_page($error_message)
 	{
+		$this->user->session_kill(false);
 		$this->template->assign_vars([
 			'title'         => $this->language->lang('ANUBISBB_OH_NO'),
 			'error_message' => $error_message,

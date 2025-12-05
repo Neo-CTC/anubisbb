@@ -186,7 +186,7 @@ const dependencies = [
     if (url_here.searchParams.get('redir')) {
       redir = url_here.searchParams.get('redir')
     } else {
-      redir = window.location.href;
+      redir = '';
     }
     const goto = u(passRoute, {
           response: hash,

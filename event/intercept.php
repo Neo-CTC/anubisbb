@@ -84,18 +84,20 @@ class intercept implements EventSubscriberInterface
 
 		global $phpbb_root_path;
 		$this->user->page = $this->user->extract_current_page($phpbb_root_path);
+
 		// The ip address code in session.php is far more complex than this, but we
 		// just need it for logging... so it should be okay?
 		// TODO: revisit and bring inline with phpBB's ip code
 		$this->user->ip = $this->request->server('REMOTE_ADDR', '-');
 
-		// Cookie check
-		// Look for anubis cookies or user cookie
+		// Check for cookies
 		$cookie_name = $this->config['cookie_name'];
 		if (
-			$this->request->is_set($cookie_name . '_anubisbb_early', $this->request::COOKIE) ||
+			// Continue if user has an AnubisBB cookie...
 			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
-			($this->request->is_set($cookie_name . '_u', $this->request::COOKIE) && $this->request->variable($cookie_name . '_u', 0, false, $this->request::COOKIE) > 1)
+			// ...or if user has a user id other anonymous
+			$this->request->variable($cookie_name . '_u', ANONYMOUS, false, $this->request::COOKIE) !== ANONYMOUS
+			// We'll verify the cookies in the late intercept
 		)
 		{
 			return;
@@ -111,10 +113,34 @@ class intercept implements EventSubscriberInterface
 			}
 		}
 
-		// Path check
-		if ($this->skip_path(true))
+		// Check if we can skip this request
+		switch ($this->path_normalize())
 		{
-			return;
+			case 'app':
+				// Grab the route
+				$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
+				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages/\w+$))~', $route))
+				{
+					return;
+				}
+			break;
+
+			case 'download/file':
+				if ($this->config['anubisbb_hot_linking'] === '1')
+				{
+					return;
+				}
+			break;
+
+			case 'ucp':
+				$mode = $this->request->variable('mode', '');
+
+				// Used by some captcha
+				if ($mode == 'confirm')
+				{
+					return;
+				}
+			break;
 		}
 
 		$this->logger->log('Intercept (early)');
@@ -184,6 +210,12 @@ class intercept implements EventSubscriberInterface
 		$ttl = time() - $this->anubis::GUEST_TTL;
 		$sql = 'DELETE FROM ' . SESSIONS_TABLE . ' WHERE session_user_id = ' . ANONYMOUS . ' and anubisbb_pass = 0 and session_time < ' . $ttl;
 		$this->db->sql_query($sql);
+	}
+
+	private function path_normalize()
+	{
+		// Need to normalize the names due to weird paths for app.php and adm/index.php
+		return substr($this->user->page['page'], 0, strpos($this->user->page['page'], '.'));
 	}
 
 	private function skip_path($early = false)
@@ -257,47 +289,12 @@ class intercept implements EventSubscriberInterface
 					}
 			}
 		}
-		// Early
-		else
-		{
-			// When early intercept is on, only pages meant for bots can bypass.
-			// So far there's only one path that's for bots and that's the RSS feeds, and of course myself.
-			// And file downloads when hot linking is allowed
-			switch ($page_normalized)
-			{
-				case 'app':
-					// Grab the route
-					$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-					if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages/\w+$))~', $route))
-					{
-						return true;
-					}
-				break;
-
-				case 'download/file':
-					if ($this->config['anubisbb_hot_linking'] === '1')
-					{
-						return true;
-					}
-				break;
-
-				case 'ucp':
-					$mode = $this->request->variable('mode', '');
-
-					// Used by some spambot countermeasures
-					if (in_array($mode, ['confirm']))
-					{
-						// TODO: don't kill user session if cookie
-						return true;
-					}
-				break;
-			}
-		}
 		return false;
 	}
 
 	private function intercept()
 	{
+		$this->user->session_kill(false);
 		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge', [], true, '');
 		$no_js          = $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'nojs'], true, '', UrlGeneratorInterface::ABSOLUTE_URL);
 

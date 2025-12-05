@@ -106,13 +106,6 @@ class api_controller
 	public function make_challenge()
 	{
 		$this->user->session_kill(false);
-
-		// Set a cookie to bypass the early intercept allowing access to log in and contact pages.
-		// Todo: remove this when we ever figure out a non JS solution
-		if ($this->config['anubisbb_early'])
-		{
-			$this->user->set_cookie('anubisbb_early', 'true', 0, false);
-		}
 		$time = time();
 
 		// Paths for static files and the verification api
@@ -128,10 +121,10 @@ class api_controller
 		if (!$challenge)
 		{
 			// Problem making the challenge?
-			// TODO: log the error to phpBB
 			$this->template->assign_vars([
 				'title'         => 'Oh noes!',
 				'error_message' => $this->anubis->error,
+				// TODO: finish retry link
 				'retry_link'    => build_url(), // Basically a link to the current url
 			]);
 			$this->logger->log('Error: ' . $this->anubis->error);

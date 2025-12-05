@@ -106,7 +106,9 @@ class intercept implements EventSubscriberInterface
 			case 'app':
 				// Grab the route
 				$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages/\w+$))~', $route))
+
+				// Allow only RSS feeds and myself
+				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages)/\w+$)~', $route))
 				{
 					return;
 				}

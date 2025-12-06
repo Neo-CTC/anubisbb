@@ -16,7 +16,6 @@ use neodev\anubisbb\core\logger;
 use phpbb\config\config;
 use phpbb\controller\helper as controller_helper;
 use phpbb\language\language;
-use phpbb\path_helper;
 use phpbb\request\request;
 use phpbb\request\request_interface;
 use phpbb\template\template;

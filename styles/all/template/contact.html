@@ -2,10 +2,11 @@
 <div class="centered-div">
 	<img id="image" class="anubis-img" src="{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/img/happy.webp" alt="Anubis rejoices">
 	<form method="post">
-		<div class="panel" style="max-width: min-content">
+		<div class="panel">
 			<div class="inner">
 				<div class="content">
 					<fieldset class="fields1">
+						<h3>{{ lang('CONTACT') }}</h3>
 						{% if ERROR_MESSAGE %}<p class="error">{ERROR_MESSAGE}</p>{% endif %}
 						<dl>
 							<dt><label for="name">{L_SENDER_NAME}{L_COLON}</label></dt>

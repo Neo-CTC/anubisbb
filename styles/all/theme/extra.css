@@ -67,3 +67,7 @@
 	display: flex;
 	justify-content: center;
 }
+
+.button1 {
+	padding: 3px 9px
+}

@@ -156,7 +156,6 @@ class intercept implements EventSubscriberInterface
 		$path_normalize = $this->path_normalize();
 		switch ($path_normalize)
 		{
-			// TODO: check bypasses
 			case 'app':
 
 				// Grab the route

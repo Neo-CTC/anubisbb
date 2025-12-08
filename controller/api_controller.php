@@ -60,7 +60,7 @@ class api_controller
 		$this->routes = [
 			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
 			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
-			'pass'    => $this->controller_helper->route('neodev_anubisbb_pass_challenge'),
+			'pass'    => $this->controller_helper->route('neodev_anubisbb_pass_challenge', [], true, ''),
 		];
 	}
 
@@ -110,7 +110,7 @@ class api_controller
 
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
-			'route_path'   => $this->routes['pass'],
+			'pass_path'    => $this->routes['pass'],
 			'login_path'   => $this->routes['login'],
 			'contact_path' => $this->routes['contact'],
 			'version'      => $this->anubis->version,

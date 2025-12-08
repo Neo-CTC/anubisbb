@@ -27,7 +27,6 @@ class logger
 		$this->enabled = $this->config['anubisbb_log_enabled'];
 	}
 
-	// TODO: log level
 	public function log($message)
 	{
 		if (!$this->enabled)

@@ -11,9 +11,13 @@
 	{
 		"version":"{{ version }}",
 		"static_prefix":"{{ ROOT_PATH }}ext/neodev/anubisbb/styles/all/theme/",
-		"route_prefix":"{{ route_path }}",
-		"root_path":"{{ ROOT_PATH }}"
+		"routes": {
+			"pass": "{{ pass_path }}",
+			"login": "{{ login_path }}",
+			"contact": "{{ contact_path }}"
+		}
 	}
+
 
 	</script>
 	{% if challenge %}

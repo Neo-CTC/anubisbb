@@ -42,8 +42,9 @@ const dependencies = [
   const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
   const anubisVersion = anubis_settings['version'];
   const staticPrefix = anubis_settings['static_prefix'];
-  const passRoute = anubis_settings['route_prefix'];
-  const rootPath = anubis_settings['root_path'];
+  const passRoute = anubis_settings['routes']['pass'];
+  const loginPath = anubis_settings['routes']['login'];
+  const contactPath = anubis_settings['routes']['contact'];
 
   const details = document.querySelector('details');
   let userReadDetails = false;
@@ -133,7 +134,7 @@ const dependencies = [
   {
     ohNoes({
       titleMsg: "Oh noes!",
-      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0')">Retry</a>, <a href="${rootPath}ucp.php?mode=login">login</a>, or <a href="${rootPath}memberlist.php?mode=contactadmin">contact the administrators</a> for help.`,
+      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0')">Retry</a>, <a href="${loginPath}">login</a>, or <a href="${contactPath}">contact the administrators</a> for help.`,
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
     return;
@@ -231,7 +232,7 @@ const dependencies = [
       fc.style.width = '100%';
       fc.style.color = '#f9f5d7';
       fc.style.display = 'flex';
-      fc.innerHTML = `<a href="${goto}" style="color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold">Continue ➞</a>`;
+      fc.innerHTML = `<a href="${goto}" style="color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold">Continue →</a>`;
 
       setTimeout(() => {
         window.location.assign(goto);

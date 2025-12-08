@@ -2,23 +2,6 @@ import processFast from "./proof-of-work.js";
 import processSlow from "./proof-of-work-slow.js";
 import {testVideo} from "./video.js";
 
-const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
-
-// TODO: default to en
-// TODO: handle fetch errors
-const fetch_l = await fetch(`${anubis_settings['static_prefix']}/${anubis_settings['user_lang']}/strings.json`);
-const lang_strings = await fetch_l.json();
-
-const lang = (base_str, ...values) => {
-  let str = lang_strings[base_str]
-  if (typeof str === 'undefined') {
-    return base_str
-  }
-  return str.replace(/{(\d+)}/g, function(match, index) {
-    return typeof values[index] !== 'undefined' ? values[index] : match;
-  });
-}
-
 const abort_controller = new AbortController();
 globalThis.anubis_abort = abort_controller
 
@@ -37,20 +20,11 @@ const u = (url = "", params = {}) => {
 const imageURL = (mood, cacheBuster, staticPrefix) =>
   u(`${staticPrefix}img/${mood}.webp`, { cacheBuster });
 
-const dependencies = [
-  {
-    name: "WebCrypto",
-    msg: lang('missing_crypto'),
-    value: window.crypto,
-  },
-  {
-    name: "Web Workers",
-    msg: lang('missing_workers'),
-    value: window.Worker,
-  },
-];
+
 
 (async () => {
+  const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
+
   const status = document.getElementById('status');
   const image = document.getElementById('image');
   const title = document.getElementById('title');
@@ -80,6 +54,48 @@ const dependencies = [
     progress.style.display = "none";
   };
 
+  const fetch_lang = async (lang) => {
+    try {
+      const f = await fetch(`${anubis_settings['static_prefix']}${lang}/strings.json`);
+      if (f.status !== 200 || f.headers.get('Content-Type') !== 'application/json'){
+        console.warn('Bad response for language file', f)
+        return false;
+      }
+      return await f.json();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Loop until we find a working language
+  let lang_strings = null
+  for (const lang of [anubis_settings['user_lang'],'en']) {
+    const ls = await fetch_lang(lang);
+    if (ls !== false) {
+      lang_strings = ls;
+      break;
+    }
+  }
+  // Still no language?
+  if (lang_strings === null) {
+    ohNoes({
+      titleMsg: "Missing language file",
+      statusMsg: "Could not load language file",
+      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+    });
+    return;
+  }
+
+  const lang = (base_str, ...values) => {
+    let str = lang_strings[base_str]
+    if (typeof str === 'undefined') {
+      return base_str
+    }
+    return str.replace(/{(\d+)}/g, function(match, index) {
+      return typeof values[index] !== 'undefined' ? values[index] : match;
+    });
+  }
+
   if (!window.isSecureContext) {
     ohNoes({
       titleMsg: lang('not_secure_title'),
@@ -104,6 +120,18 @@ const dependencies = [
 
   status.innerHTML = lang('calculating');
 
+  const dependencies = [
+    {
+      name: "WebCrypto",
+      msg: lang('missing_crypto'),
+      value: window.crypto,
+    },
+    {
+      name: "Web Workers",
+      msg: lang('missing_workers'),
+      value: window.Worker,
+    },
+  ];
   for (const { value, name, msg } of dependencies) {
     if (!value) {
       ohNoes({
@@ -111,6 +139,7 @@ const dependencies = [
         statusMsg: msg,
         imageSrc: imageURL("reject", anubisVersion, staticPrefix),
       });
+      return;
     }
   }
 

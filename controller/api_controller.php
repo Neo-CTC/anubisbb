@@ -114,6 +114,7 @@ class api_controller
 			'login_path'   => $this->routes['login'],
 			'contact_path' => $this->routes['contact'],
 			'version'      => $this->anubis->version,
+			'user_lang'    => $this->user->data['user_lang'],
 		]);
 
 		// Fetch the challenge hash

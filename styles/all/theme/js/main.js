@@ -2,11 +2,13 @@ import processFast from "./proof-of-work.js";
 import processSlow from "./proof-of-work-slow.js";
 import {testVideo} from "./video.js";
 
-/*
-  Language strings and function
- */
+const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
 
-import lang_strings from "../en/strings.json" with {type: "json"};
+// TODO: default to en
+// TODO: handle fetch errors
+const fetch_l = await fetch(`${anubis_settings['static_prefix']}/${anubis_settings['user_lang']}/strings.json`);
+const lang_strings = await fetch_l.json();
+
 const lang = (base_str, ...values) => {
   let str = lang_strings[base_str]
   if (typeof str === 'undefined') {
@@ -54,7 +56,6 @@ const dependencies = [
   const title = document.getElementById('title');
   const progress = document.getElementById('progress');
 
-  const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
   const anubisVersion = anubis_settings['version'];
   const staticPrefix = anubis_settings['static_prefix'];
   const passRoute = anubis_settings['routes']['pass'];

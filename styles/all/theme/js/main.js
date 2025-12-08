@@ -6,18 +6,16 @@ import {testVideo} from "./video.js";
   Language strings and function
  */
 
-import lang_strings from "../en/strings.json"
-
-with {type: "json"}
-  const lang = (base_str, ...values) => {
-    let str = lang_strings[base_str]
-    if (typeof str === 'undefined') {
-      return base_str
-    }
-    return str.replace(/{(\d+)}/g, function(match, index) {
-      return typeof values[index] !== 'undefined' ? values[index] : match;
-    });
+import lang_strings from "../en/strings.json" with {type: "json"};
+const lang = (base_str, ...values) => {
+  let str = lang_strings[base_str]
+  if (typeof str === 'undefined') {
+    return base_str
   }
+  return str.replace(/{(\d+)}/g, function(match, index) {
+    return typeof values[index] !== 'undefined' ? values[index] : match;
+  });
+}
 
 const abort_controller = new AbortController();
 globalThis.anubis_abort = abort_controller

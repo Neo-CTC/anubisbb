@@ -5,7 +5,7 @@
   "calculation_error_title": "Calculation error!",
   "challenge_error_title": "Challenge error!",
   "finished": "Done! Took {0}ms, {1} iterations",
-  "finished_progress_bar": "<a href=\"{0}\" style=\"color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold\">Continue →</a>"
+  "finished_progress_bar": "<a href=\"{0}\" style=\"color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold\">Continue →</a>",
   "finished_reading": "I've finished reading, continue →",
   "general_error_title": "Oh noes!",
   "missing_crypto": "Your browser doesn't have a functioning web.crypto element. Are you viewing this over a secure context?",

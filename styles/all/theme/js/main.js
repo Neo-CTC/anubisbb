@@ -1,6 +1,23 @@
 import processFast from "./proof-of-work.js";
 import processSlow from "./proof-of-work-slow.js";
-import { testVideo } from "./video.js";
+import {testVideo} from "./video.js";
+
+/*
+  Language strings and function
+ */
+
+import lang_strings from "../en/strings.json"
+
+with {type: "json"}
+  const lang = (base_str, ...values) => {
+    let str = lang_strings[base_str]
+    if (typeof str === 'undefined') {
+      return base_str
+    }
+    return str.replace(/{(\d+)}/g, function(match, index) {
+      return typeof values[index] !== 'undefined' ? values[index] : match;
+    });
+  }
 
 const abort_controller = new AbortController();
 globalThis.anubis_abort = abort_controller
@@ -23,12 +40,12 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
 const dependencies = [
   {
     name: "WebCrypto",
-    msg: "Your browser doesn't have a functioning web.crypto element. Are you viewing this over a secure context?",
+    msg: lang('missing_crypto'),
     value: window.crypto,
   },
   {
     name: "Web Workers",
-    msg: "Your browser doesn't support web workers (Anubis uses this to avoid freezing your browser). Do you have a plugin like JShelter installed?",
+    msg: lang('missing_workers'),
     value: window.Worker,
   },
 ];
@@ -66,8 +83,8 @@ const dependencies = [
 
   if (!window.isSecureContext) {
     ohNoes({
-      titleMsg: "Your context is not secure!",
-      statusMsg: `Try connecting over HTTPS or let the admin know to set up HTTPS. For more information, see <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts#when_is_a_context_considered_secure">MDN</a>.`,
+      titleMsg: lang('not_secure_title'),
+      statusMsg: lang('not_secure'),
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
     return;
@@ -86,12 +103,12 @@ const dependencies = [
   //   return;
   // }
 
-  status.innerHTML = 'Calculating...';
+  status.innerHTML = lang('calculating');
 
   for (const { value, name, msg } of dependencies) {
     if (!value) {
       ohNoes({
-        titleMsg: `Missing feature ${name}`,
+        titleMsg: lang('missing_dependency_title', name),
         statusMsg: msg,
         imageSrc: imageURL("reject", anubisVersion, staticPrefix),
       });
@@ -103,20 +120,20 @@ const dependencies = [
   const process = algorithms[rules.algorithm];
   if (!process) {
     ohNoes({
-      titleMsg: "Challenge error!",
-      statusMsg: `Failed to resolve check algorithm. You may want to reload the page.`,
+      titleMsg: lang('challenge_error_title'),
+      statusMsg: lang('process_error'),
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
     return;
   }
 
-  status.innerHTML = `Calculating...<br/>Difficulty: ${rules.report_as}, `;
+  status.innerHTML = lang('status', rules.report_as);
   progress.style.display = "inline-block";
 
   // the whole text, including "Speed:", as a single node, because some browsers
   // (Firefox mobile) present screen readers with each node as a separate piece
   // of text.
-  const rateText = document.createTextNode("Speed: 0kH/s");
+  const rateText = document.createTextNode(lang('rate', '0'));
   status.appendChild(rateText);
 
   let lastSpeedUpdate = 0;
@@ -133,8 +150,8 @@ const dependencies = [
   if (attempt_count >= 3)
   {
     ohNoes({
-      titleMsg: "Oh noes!",
-      statusMsg: `Unable to pass the challenge after ${attempt_count} attempts.<br><a href="" onclick="sessionStorage.setItem('anubis_attempts','0')">Retry</a>, <a href="${loginPath}">login</a>, or <a href="${contactPath}">contact the administrators</a> for help.`,
+      titleMsg: lang('general_error_title'),
+      statusMsg: lang('attempt_limit', attempt_count, loginPath, contactPath),
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
     return;
@@ -151,7 +168,7 @@ const dependencies = [
         // only update the speed every second so it's less visually distracting
         if (delta - lastSpeedUpdate > 1000) {
           lastSpeedUpdate = delta;
-          rateText.data = `Speed: ${(iters / delta).toFixed(3)}kH/s`;
+          rateText.data = lang('rate', (iters / delta).toFixed(3));
         }
         // the probability of still being on the page is (1 - likelihood) ^ iters.
         // by definition, half of the time the progress bar only gets to half, so
@@ -168,7 +185,7 @@ const dependencies = [
           status.append(
             document.createElement("br"),
             document.createTextNode(
-              "Verification is taking longer than expected. Please do not refresh the page.",
+                lang('verification_time'),
             ),
           );
           showingApology = true;
@@ -178,7 +195,7 @@ const dependencies = [
     const t1 = Date.now();
     console.log({ hash, nonce });
 
-    title.innerHTML = "Success!";
+    title.innerHTML = lang('success');
     attempt_count += 1
     sessionStorage.setItem('anubis_attempts',attempt_count.toString())
 
@@ -197,7 +214,7 @@ const dependencies = [
           elapsedTime: t1 - t0
         })
 
-    status.innerHTML = `Done! Took ${t1 - t0}ms, ${nonce} iterations`;
+    status.innerHTML = lang('finished', (t1 - t0), nonce);
     image.src = imageURL("happy", anubisVersion, staticPrefix);
 
     if (userReadDetails) {
@@ -217,7 +234,7 @@ const dependencies = [
       container.style.outlineOffset = "2px";
       container.style.width = "min(20rem, 90%)";
       container.style.margin = "1rem auto 2rem";
-      container.innerHTML = "I've finished reading, continue →";
+      container.innerHTML = lang('finished_reading');
 
       function onDetailsExpand() {
         window.location.assign(goto,);
@@ -232,7 +249,7 @@ const dependencies = [
       fc.style.width = '100%';
       fc.style.color = '#f9f5d7';
       fc.style.display = 'flex';
-      fc.innerHTML = `<a href="${goto}" style="color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold">Continue →</a>`;
+      fc.innerHTML = lang('finished_progress_bar', goto);
 
       setTimeout(() => {
         window.location.assign(goto);
@@ -241,8 +258,8 @@ const dependencies = [
 
   } catch (err) {
     ohNoes({
-      titleMsg: "Calculation error!",
-      statusMsg: `Failed to calculate challenge: ${err.message}`,
+      titleMsg: lang('calculation_error_title'),
+      statusMsg: lang('calculation_error', err.message),
       imageSrc: imageURL("reject", anubisVersion, staticPrefix),
     });
   }

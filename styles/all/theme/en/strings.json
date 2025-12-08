@@ -1,0 +1,21 @@
+{
+  "attempt_limit": "Unable to pass the challenge after {0} attempts.<br><a href=\"\" onclick=\"sessionStorage.setItem('anubis_attempts','0')\">Retry</a>, <a href=\"{1}\">login</a>, or <a href=\"{2}\">contact the administrators</a> for help.",
+  "calculating": "Calculating...",
+  "calculation_error": "Failed to calculate challenge: {0}",
+  "calculation_error_title": "Calculation error!",
+  "challenge_error_title": "Challenge error!",
+  "finished": "Done! Took {0}ms, {1} iterations",
+  "finished_progress_bar": "<a href=\"{0}\" style=\"color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold\">Continue →</a>"
+  "finished_reading": "I've finished reading, continue →",
+  "general_error_title": "Oh noes!",
+  "missing_crypto": "Your browser doesn't have a functioning web.crypto element. Are you viewing this over a secure context?",
+  "missing_dependency_title": "Missing feature {0}",
+  "missing_workers": "Your browser doesn't support web workers (Anubis uses this to avoid freezing your browser). Do you have a plugin like JShelter installed?",
+  "not_secure": "Try connecting over HTTPS or let the admin know to set up HTTPS. For more information, see <a href=\"https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts#when_is_a_context_considered_secure\">MDN</a>.",
+  "not_secure_title": "Your context is not secure!",
+  "process_error": "Failed to resolve check algorithm. You may want to reload the page.",
+  "rate": "Speed: {0}kH/s",
+  "status": "Calculating...<br/>Difficulty: {0}, ",
+  "success": "Success!",
+  "verification_time": "Verification is taking longer than expected. Please do not refresh the page."
+}

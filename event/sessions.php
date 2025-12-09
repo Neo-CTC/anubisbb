@@ -13,6 +13,7 @@ namespace neodev\anubisbb\event;
 use neodev\anubisbb\core\anubis_core;
 
 use phpbb\config\config;
+use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
 use phpbb\request\request;
 use phpbb\user;
@@ -33,21 +34,17 @@ class sessions implements EventSubscriberInterface
 		];
 	}
 
-	private $user;
-	private $request;
-	private $config;
 	private $db;
+	private $user;
 
 	private $anubis;
 
-	public function __construct(user $user, request $request, config $config, driver_interface $db)
+	public function __construct(user $user, request $request, config $config, driver_interface $db, controller_helper $helper)
 	{
-		$this->user    = $user;
-		$this->request = $request;
-		$this->config  = $config;
 		$this->db      = $db;
+		$this->user    = $user;
 
-		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->anubis = new anubis_core($config, $helper, $request, $this->user);
 	}
 
 	public function logout($event)

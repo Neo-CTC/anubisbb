@@ -38,7 +38,6 @@ class api_controller
 	private $anubis;
 	private $logger;
 	private $redirect;
-	private $routes;
 
 	public function __construct(config $config, controller_helper $helper, request $request, template $template, user $user, driver_interface $db, language $language)
 	{
@@ -52,16 +51,25 @@ class api_controller
 
 		$this->redirect = '';
 
-		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 
 		$this->language->add_lang('common', 'neodev/anubisbb');
+	}
 
-		$this->routes = [
-			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
-			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
-			'pass'    => $this->controller_helper->route('neodev_anubisbb_pass_challenge', [], true, ''),
-		];
+	public function handler($name)
+	{
+		switch ($name)
+		{
+			case 'make_challenge':
+				return $this->make_challenge();
+			case 'pass_challenge':
+				return $this->pass_challenge();
+			case 'benchmark':
+				return $this->benchmark();
+			default:
+				return $this->build_error_page($this->language->lang('PAGE_NOT_FOUND'));
+		}
 	}
 
 	/**
@@ -110,9 +118,9 @@ class api_controller
 
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
-			'pass_path'    => $this->routes['pass'],
-			'login_path'   => $this->routes['login'],
-			'contact_path' => $this->routes['contact'],
+			'pass_path'    => $this->anubis->routes['pass'],
+			'login_path'   => $this->anubis->routes['login'],
+			'contact_path' => $this->anubis->routes['contact'],
 			'version'      => $this->anubis->version,
 			'user_lang'    => $this->user->data['user_lang'],
 		]);

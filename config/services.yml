@@ -24,6 +24,7 @@ services:
         class: neodev\anubisbb\controller\acp_controller
         arguments:
             - '@config'
+            - '@controller.helper'
             - '@language'
             - '@log'
             - '@request'
@@ -55,7 +56,7 @@ services:
             - '@request'
             - '@config'
             - '@dbal.conn'
-            - '@cache'
+            - '@controller.helper'
         tags:
             - { name: event.listener }
 

@@ -20,7 +20,6 @@ use phpbb\request\request;
 use phpbb\user;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class intercept implements EventSubscriberInterface
 {
@@ -35,7 +34,6 @@ class intercept implements EventSubscriberInterface
 	private $user;
 	private $request;
 	private $config;
-	private $controller_helper;
 	private $cache;
 
 	private $anubis;
@@ -43,13 +41,12 @@ class intercept implements EventSubscriberInterface
 
 	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache)
 	{
-		$this->user              = $user;
-		$this->request           = $request;
-		$this->config            = $config;
-		$this->controller_helper = $helper;
-		$this->cache             = $cache;
+		$this->user    = $user;
+		$this->request = $request;
+		$this->config  = $config;
+		$this->cache   = $cache;
 
-		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 	}
 
@@ -222,8 +219,8 @@ class intercept implements EventSubscriberInterface
 
 	private function intercept()
 	{
-		$make_challenge = $this->controller_helper->route('neodev_anubisbb_make_challenge', [], true, '');
-		$no_js          = $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'nojs'], true, '', UrlGeneratorInterface::ABSOLUTE_URL);
+		$make_challenge = $this->anubis->routes['make'];
+		$no_js          = $this->anubis->routes['nojs'];
 
 		// Prevent an infinite loop: don't cache the "Loading..." redirect to Anubis.
 		// Otherwise the user will keep being sent back to Anubis, even after they have a valid cookie.

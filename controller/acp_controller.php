@@ -12,6 +12,7 @@ namespace neodev\anubisbb\controller;
 
 use neodev\anubisbb\core\anubis_core;
 use phpbb\config\config;
+use phpbb\controller\helper as controller_helper;
 use phpbb\language\language;
 use phpbb\log\log;
 use phpbb\request\request;
@@ -25,6 +26,7 @@ class acp_controller
 {
 	/** @var \phpbb\config\config */
 	private $config;
+	private $controller_helper;
 
 	/** @var \phpbb\language\language */
 	private $language;
@@ -54,14 +56,15 @@ class acp_controller
 	 * @param \phpbb\template\template $template Template object
 	 * @param \phpbb\user              $user     User object
 	 */
-	public function __construct(config $config, language $language, log $log, request $request, template $template, user $user)
+	public function __construct(config $config, controller_helper $helper, language $language, log $log, request $request, template $template, user $user)
 	{
-		$this->config   = $config;
-		$this->language = $language;
-		$this->log      = $log;
-		$this->request  = $request;
-		$this->template = $template;
-		$this->user     = $user;
+		$this->config            = $config;
+		$this->controller_helper = $helper;
+		$this->language          = $language;
+		$this->log               = $log;
+		$this->request           = $request;
+		$this->template          = $template;
+		$this->user              = $user;
 	}
 
 	/**
@@ -79,7 +82,7 @@ class acp_controller
 
 		if ($this->request->is_set_post('sk_submit'))
 		{
-			$core = new anubis_core($this->config, $this->request, $this->user);
+			$core = new anubis_core($this->config, $this->controller_helper, $this->request, $this->user);
 			$core->gen_sk();
 			trigger_error($this->language->lang('ACP_ANUBISBB_SETTINGS_SECRET_KEY_REGEN') . adm_back_link($this->u_action));
 		}

@@ -11,10 +11,12 @@
 namespace neodev\anubisbb\core;
 
 use phpbb\config\config;
+use phpbb\controller\helper as controller_helper;
 use phpbb\request\request;
 use phpbb\request\request_interface;
 use phpbb\user;
 use SodiumException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class anubis_core
 {
@@ -28,10 +30,11 @@ class anubis_core
 	private $user;
 	private $difficulty;
 	private $secret_key;
+	public $routes;
 
 	const GUEST_TTL = 1800; // 30 minutes
 
-	public function __construct(config $config, request $request, user $user)
+	public function __construct(config $config, controller_helper $controller_helper, request $request, user $user)
 	{
 		$this->error   = '';
 		$this->version = 'v1.18.0-pre1-4-g3701b2b';
@@ -48,10 +51,23 @@ class anubis_core
 			$this->gen_sk();
 		}
 
-		// Set cookie ttl with a safe minimum of 60 seconds
-		$this->cookie_time = ((int) $this->config['anubisbb_ctime'] > 60) ? (int) $this->config['anubisbb_ctime'] : 60;
+		// Set cookie ttl with a safe minimum of 2 minutes to prevent lockouts
+		$this->cookie_time = max($this->config['anubisbb_ctime'], 120);
 
 		$this->cookie_name = $this->config['cookie_name'] . '_anubisbb';
+
+		$pages_base = $controller_helper->route('neodev_anubisbb_pages', [], true, '');
+		$api_base   = $controller_helper->route('neodev_anubisbb_api', [], true, '');
+
+		$this->routes = [
+			'cc'      => $pages_base . '/c_check',
+			'contact' => $pages_base . '/contact',
+			'login'   => $pages_base . '/login',
+			'nojs'    => $controller_helper->route('neodev_anubisbb_pages', ['name' => 'nojs'], true, '', UrlGeneratorInterface::ABSOLUTE_URL),
+
+			'make' => $api_base . '/make_challenge',
+			'pass' => $api_base . '/pass_challenge',
+		];
 	}
 
 	public function gen_sk(): void
@@ -290,7 +306,7 @@ class anubis_core
 		try
 		{
 			$public_key = substr($this->secret_key, SODIUM_CRYPTO_SIGN_SEEDBYTES);
-			if (!sodium_crypto_sign_verify_detached($signature,$encoded_payload,$public_key))
+			if (!sodium_crypto_sign_verify_detached($signature, $encoded_payload, $public_key))
 			{
 				// TODO: log bad key
 				return false;

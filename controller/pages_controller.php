@@ -37,7 +37,6 @@ class pages_controller
 
 	private $anubis;
 	private $logger;
-	private $routes;
 
 	public function __construct(config $config, controller_helper $helper, request $request, template $template, user $user, language $language)
 	{
@@ -48,25 +47,18 @@ class pages_controller
 		$this->user              = $user;
 		$this->language          = $language;
 
-		$this->anubis = new anubis_core($this->config, $this->request, $this->user);
+		$this->anubis = new anubis_core($this->config, $this->controller_helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
 
 		$this->language->add_lang('common', 'neodev/anubisbb');
-
-		// Set session id to '' or it will append a session id
-		$this->routes = [
-			'contact' => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'contact'], true, ''),
-			'login'   => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'login'], true, ''),
-			'cc'      => $this->controller_helper->route('neodev_anubisbb_pages', ['name' => 'c_check'], true, ''),
-		];
 	}
 
 	public function handler($name)
 	{
 		// Make paths to the other pages
 		$this->template->assign_vars([
-			'contact_path' => $this->routes['contact'],
-			'login_path'   => $this->routes['login'],
+			'contact_path' => $this->anubis->routes['contact'],
+			'login_path'   => $this->anubis->routes['login'],
 		]);
 
 		switch ($name)
@@ -85,6 +77,7 @@ class pages_controller
 			case 'contact':
 				$this->cookie_check($name);
 				$this->logger->log('Contact page');
+				$this->language->add_lang('memberlist');
 
 				if ($this->request->is_set_post('submit'))
 				{
@@ -116,7 +109,6 @@ class pages_controller
 					add_form_key('memberlist_email');
 				}
 
-				$this->language->add_lang('memberlist');
 				$this->template->assign_var('title', $this->language->lang('ANUBISBB_CONTACT_TITLE'));
 				return $this->controller_helper->render('@neodev_anubisbb/contact.html');
 
@@ -144,7 +136,7 @@ class pages_controller
 				}
 
 				// Send user back to original page
-				redirect($this->routes[$cc_cookie['data']['page']]);
+				redirect($this->anubis->routes[$cc_cookie['data']['page']]);
 
 			default:
 				return $this->build_error_page($this->language->lang('PAGE_NOT_FOUND'));
@@ -174,7 +166,7 @@ class pages_controller
 		$e  = $t + $this->anubis::GUEST_TTL;
 		$cc = $this->anubis->jwt_create(['page' => $base_page], $t, $e);
 		$this->user->set_cookie('anubisbb_cc', $cc, $e);
-		redirect($this->routes['cc']);
+		redirect($this->anubis->routes['cc']);
 	}
 
 	private function build_error_page($error_message)

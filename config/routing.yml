@@ -1,13 +1,7 @@
-neodev_anubisbb_pass_challenge:
-    path: /anubis/api/pass_challenge
-    defaults: { _controller: neodev.anubisbb.controller.api:pass_challenge }
-neodev_anubisbb_make_challenge:
-    path: /anubis/api/make_challenge
-    defaults: { _controller: neodev.anubisbb.controller.api:make_challenge }
-neodev_anubisbb_benchmark:
-    path: /anubis/api/benchmark
-    defaults: { _controller: neodev.anubisbb.controller.api:benchmark }
+neodev_anubisbb_api:
+    path: /anubis/api/{name}
+    defaults: { _controller: neodev.anubisbb.controller.api:handler, name: "" }
 
 neodev_anubisbb_pages:
     path: /anubis/pages/{name}
-    defaults: { _controller: neodev.anubisbb.controller.pages:handler }
+    defaults: { _controller: neodev.anubisbb.controller.pages:handler, name: "" }

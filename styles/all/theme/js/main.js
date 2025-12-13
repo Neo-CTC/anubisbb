@@ -168,20 +168,50 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
   let showingApology = false;
   const likelihood = Math.pow(16, -rules.report_as);
 
+  let attempt_count = 0;
+  try {
+    let c = document.cookie
 
-  let attempt_count = parseInt(sessionStorage.getItem('anubis_attempts'))
-  if (isNaN(attempt_count))
-  {
-    attempt_count = 0;
-  }
-  console.log(attempt_count)
-  if (attempt_count >= 3)
-  {
-    ohNoes({
-      titleMsg: lang('general_error_title'),
-      statusMsg: lang('attempt_limit', attempt_count, loginPath, contactPath),
-      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
-    });
+    // Should have received a cookie from the api
+    if (c.length === 0) {
+        ohNoes({
+          titleMsg: lang('general_error_title'),
+          statusMsg: lang('cookies_disabled'),
+          imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+        });
+        return;
+    }
+
+    attempt_count = parseInt(sessionStorage.getItem('anubis_attempts'))
+    if (isNaN(attempt_count)) {
+      attempt_count = 0;
+    }
+    if (attempt_count >= 3) {
+      ohNoes({
+        titleMsg: lang('general_error_title'),
+        statusMsg: lang('attempt_limit', attempt_count, loginPath, contactPath),
+        imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+      });
+      return;
+    }
+  }catch (err) {
+    console.error(err);
+
+    // Can't access session storage
+    if (err.name === 'SecurityError') {
+      ohNoes({
+        titleMsg: lang('challenge_error_title'),
+        statusMsg: lang('security_error'),
+        imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+      });
+    }
+    else{
+      ohNoes({
+        titleMsg: lang('calculation_error_title'),
+        statusMsg: lang('calculation_error', err.message),
+        imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+      });
+    }
     return;
   }
 

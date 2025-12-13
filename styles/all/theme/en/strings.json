@@ -4,6 +4,7 @@
   "calculation_error": "Failed to calculate challenge: {0}",
   "calculation_error_title": "Calculation error!",
   "challenge_error_title": "Challenge error!",
+  "cookies_disabled": "Cookies are disabled. Please enable cookies before trying again",
   "finished": "Done! Took {0}ms, {1} iterations",
   "finished_progress_bar": "<a href=\"{0}\" style=\"color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold\">Continue →</a>",
   "finished_reading": "I've finished reading, continue →",
@@ -15,6 +16,7 @@
   "not_secure_title": "Your context is not secure!",
   "process_error": "Failed to resolve check algorithm. You may want to reload the page.",
   "rate": "Speed: {0}kH/s",
+  "security_error": "Security settings preventing Anubis from running",
   "status": "Calculating...<br/>Difficulty: {0}, ",
   "success": "Success!",
   "verification_time": "Verification is taking longer than expected. Please do not refresh the page."

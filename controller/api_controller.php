@@ -18,6 +18,7 @@ use phpbb\controller\helper as controller_helper;
 use phpbb\db\driver\driver_interface;
 use phpbb\language\language;
 use phpbb\request\request;
+use phpbb\request\request_interface;
 use phpbb\template\template;
 use phpbb\user;
 
@@ -59,6 +60,12 @@ class api_controller
 
 	public function handler($name)
 	{
+		$this->template->assign_vars([
+			'pass_path'    => $this->anubis->routes['pass'],
+			'login_path'   => $this->anubis->routes['login'],
+			'contact_path' => $this->anubis->routes['contact'],
+		]);
+
 		switch ($name)
 		{
 			case 'make_challenge':
@@ -81,6 +88,13 @@ class api_controller
 	 */
 	public function pass_challenge()
 	{
+		$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
+
+		if ($cc_cookie === '')
+		{
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_COOKIES_DISABLED'));
+		}
+
 		$redirect = $this->request->variable('redir', '');
 
 		// The redirect hostname must match that of the server, or we default to the index
@@ -118,9 +132,6 @@ class api_controller
 
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
-			'pass_path'    => $this->anubis->routes['pass'],
-			'login_path'   => $this->anubis->routes['login'],
-			'contact_path' => $this->anubis->routes['contact'],
 			'version'      => $this->anubis->version,
 			'user_lang'    => $this->user->data['user_lang'],
 		]);
@@ -148,6 +159,12 @@ class api_controller
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
 			]);
+
+			$t  = time();
+			$e  = $t + 3600; // 1 hour, it shouldn't take longer than that to solve a challenge
+			$cc = $this->anubis->jwt_create(['page' => 'make'], $t, $e);
+			$this->user->set_cookie('anubisbb_cc', $cc, $e, false);
+
 			$this->logger->log('Challenge');
 			return $this->controller_helper->render('@neodev_anubisbb/make_challenge.html');
 		}

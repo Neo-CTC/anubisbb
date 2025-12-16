@@ -3,7 +3,7 @@
     "type": "phpbb-extension",
     "description": "Port of Anubis WAF for phpBB",
     "homepage": "",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "time": "2025-12-15",
     "license": "GPL-2.0-only",
     "authors": [

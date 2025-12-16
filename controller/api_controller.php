@@ -60,6 +60,8 @@ class api_controller
 
 	public function handler($name)
 	{
+		header('Cache-Control: no-store');
+
 		$this->template->assign_vars([
 			'pass_path'    => $this->anubis->routes['pass'],
 			'login_path'   => $this->anubis->routes['login'],

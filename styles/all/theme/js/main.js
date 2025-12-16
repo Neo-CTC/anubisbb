@@ -1,5 +1,5 @@
-import processFast from "./proof-of-work.js";
-import processSlow from "./proof-of-work-slow.js";
+import processFast from "./proof-of-work.js?hash=e622b3b1";
+import processSlow from "./proof-of-work-slow.js?hash=044caefa";
 import {testVideo} from "./video.js";
 
 const abort_controller = new AbortController();
@@ -56,7 +56,7 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
 
   const fetch_lang = async (lang) => {
     try {
-      const f = await fetch(`${anubis_settings['static_prefix']}/language/${lang}/strings.json`);
+      const f = await fetch(`${anubis_settings['static_prefix']}/language/${lang}/strings.json?hash=b969197f`);
       if (f.status !== 200 || f.headers.get('Content-Type') !== 'application/json'){
         console.warn('Bad response for language file', f)
         return false;

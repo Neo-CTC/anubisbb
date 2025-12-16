@@ -125,6 +125,8 @@ class pages_controller
 				return $this->controller_helper->render('@neodev_anubisbb/nojs.html');
 
 			case 'c_check':
+				header('Cache-Control: no-store');
+
 				$cc_cookie = $this->request->variable($this->config['cookie_name'] . '_anubisbb_cc', '', false, request_interface::COOKIE);
 				$cc_cookie = $this->anubis->jwt_unpack($cc_cookie);
 

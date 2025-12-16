@@ -37,7 +37,7 @@ class anubis_core
 	public function __construct(config $config, controller_helper $controller_helper, request $request, user $user)
 	{
 		$this->error   = '';
-		$this->version = 'v1.18.0-pre1-4-g3701b2b';
+		$this->version = 'v0.4.1+v1.18.0-pre1-4-g3701b2b';
 
 		$this->config  = $config;
 		$this->request = $request;
@@ -212,8 +212,14 @@ class anubis_core
 			return false;
 		}
 
-		// Lenient mode, skip challenge check
-		if ($this->config['anubisbb_strict_cookies'] === '0')
+		// Require matching Anubis versions, prevents problems when changing cookie formats
+		if (!isset($payload['version']) || $payload['version'] !== $this->version)
+		{
+			return false;
+		}
+
+		// Not in strict mode, skip challenge check
+		if ($this->config['anubisbb_strict_cookies'] !== '1')
 		{
 			return true;
 		}
@@ -266,10 +272,11 @@ class anubis_core
 	public function jwt_create($data, $timestamp, $expires)
 	{
 		$payload = json_encode([
-			'data' => $data,
-			'exp'  => $expires,        // Expires
-			'iat'  => $timestamp,      // Issued at
-			'nbf'  => $timestamp - 30, // Not before
+			'data'    => $data,
+			'version' => $this->version,
+			'exp'     => $expires,        // Expires
+			'iat'     => $timestamp,      // Issued at
+			'nbf'     => $timestamp - 30, // Not before
 		]);
 
 		// Encode the token

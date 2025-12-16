@@ -56,7 +56,7 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
 
   const fetch_lang = async (lang) => {
     try {
-      const f = await fetch(`${anubis_settings['static_prefix']}${lang}/strings.json`);
+      const f = await fetch(`${anubis_settings['static_prefix']}/language/${lang}/strings.json`);
       if (f.status !== 200 || f.headers.get('Content-Type') !== 'application/json'){
         console.warn('Bad response for language file', f)
         return false;

@@ -230,7 +230,6 @@ class intercept implements EventSubscriberInterface
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta http-equiv="refresh" content="1;url=$no_js" />
 	<title>Loading...</title>
 	<style>
 		body{background: #f9f5d7;margin: 0}

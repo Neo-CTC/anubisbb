@@ -330,7 +330,6 @@ class anubis_core
 		// Stale cookies, yuck!
 		if (time() > $payload['exp'] || time() < $payload['nbf'])
 		{
-			// TODO: log, maybe? the client should have cleared the cookie before sending it to us
 			return false;
 		}
 

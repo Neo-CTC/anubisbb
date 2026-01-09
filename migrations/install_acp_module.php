@@ -30,7 +30,6 @@ class install_acp_module extends migration
 			['config.add', ['anubisbb_early', 0]],
 			['config.add', ['anubisbb_strict_cookies', 1]],
 			['config.add', ['anubisbb_hot_linking', 0]],
-			// TODO, exclude paths
 
 			[
 				'module.add', [

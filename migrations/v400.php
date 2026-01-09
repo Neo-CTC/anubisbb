@@ -32,7 +32,6 @@ class v400 extends migration
 			['config.add', ['anubisbb_log_path', 'store/anubisbb/']],
 			['config.add', ['anubisbb_log_rotate_max', 30]],
 			['config.add', ['anubisbb_log_cron', 0]],
-			// TODO, exclude paths
 		];
 	}
 }

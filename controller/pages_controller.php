@@ -84,9 +84,11 @@ class pages_controller
 					// Copied from memberlist.php
 					if (!class_exists('messenger'))
 					{
-						global $phpbb_root_path, $phpEx, $phpbb_container;
+						global $phpbb_root_path, $phpEx;
 						include($phpbb_root_path . 'includes/functions_messenger.' . $phpEx);
 					}
+					global $phpbb_container;
+
 					/** @var $form \phpbb\message\form */
 					$form = $phpbb_container->get('message.form.admin');
 

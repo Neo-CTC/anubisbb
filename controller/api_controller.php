@@ -68,6 +68,23 @@ class api_controller
 			'contact_path' => $this->anubis->routes['contact'],
 		]);
 
+		$redirect = $this->request->variable('redir', '');
+
+		// Somehow the redirect points back to us??
+		if (preg_match('~/anubis/(api|pages)/~', $this->redirect))
+		{
+			$redirect = '';
+		}
+
+		// The redirect hostname must match that of the server
+		$url_host = parse_url($redirect, PHP_URL_HOST);
+		$redirect = $url_host === $this->user->host ? $redirect : '';
+
+		if (!$redirect){
+			$redirect = generate_board_url();
+		}
+		$this->redirect = $redirect;
+
 		switch ($name)
 		{
 			case 'make_challenge':
@@ -95,18 +112,6 @@ class api_controller
 		if ($cc_cookie === '')
 		{
 			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_COOKIES_DISABLED'));
-		}
-
-		$redirect = $this->request->variable('redir', '');
-
-		// The redirect hostname must match that of the server, or we default to the index
-		$url_host       = parse_url($redirect, PHP_URL_HOST);
-		$this->redirect = $url_host === $this->user->host ? $redirect : 'index.php';
-
-		// Somehow the redirect points back to us??
-		if (preg_match('~/anubis/(api|pages)/~', $this->redirect))
-		{
-			$this->redirect = 'index.php';
 		}
 
 		if ($this->anubis->pass_challenge())
@@ -142,14 +147,8 @@ class api_controller
 		$challenge = $this->anubis->make_challenge($time);
 		if (!$challenge)
 		{
-			// Problem making the challenge?
-			$this->template->assign_vars([
-				'title'         => 'Oh noes!',
-				'error_message' => $this->anubis->error,
-				// TODO: finish retry link
-				'retry_link'    => build_url(), // Basically a link to the current url
-			]);
 			$this->logger->log('Error: ' . $this->anubis->error);
+			$this->build_error_page($this->anubis->error);
 			return $this->controller_helper->render('@neodev_anubisbb/fail_challenge.html');
 		}
 		else
@@ -185,7 +184,8 @@ class api_controller
 		$this->template->assign_vars([
 			'title'         => $this->language->lang('ANUBISBB_OH_NO'),
 			'error_message' => $error_message,
-			// TODO: test this. it should lead to the same page the visitor was just at. Which should allow them to retry the challenge.
+			// This links back to the original page the user landed on restarting
+			// the challenge from step 1
 			'retry_link'    => $this->redirect,
 		]);
 

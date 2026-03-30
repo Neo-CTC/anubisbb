@@ -11,6 +11,7 @@
 
 namespace neodev\anubisbb\core;
 
+use DateTimeImmutable;
 use phpbb\config\config;
 use phpbb\user;
 
@@ -34,8 +35,10 @@ class logger
 			return;
 		}
 
+		$date = new DateTimeImmutable();
+
 		$log_line = [
-			date('Y-m-d H:i:s'),
+			$date->format('Y-m-d H:i:s.v'),
 			$this->user->ip,
 			$message,
 		];

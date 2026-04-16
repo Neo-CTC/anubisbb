@@ -37,6 +37,8 @@ class intercept implements EventSubscriberInterface
 	private $anubis;
 	private $logger;
 
+	private $intercept_request;
+
 	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache)
 	{
 		$this->user    = $user;
@@ -46,6 +48,8 @@ class intercept implements EventSubscriberInterface
 
 		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
+
+		$this->intercept_request = true;
 	}
 
 	/**
@@ -55,11 +59,6 @@ class intercept implements EventSubscriberInterface
 	 */
 	public function early_intercept()
 	{
-		if ($this->config['anubisbb_early'] !== '1')
-		{
-			return;
-		}
-
 		// Preload user variable with basic data
 		$this->user->browser = $this->request->header('User-Agent', '-');
 
@@ -72,19 +71,20 @@ class intercept implements EventSubscriberInterface
 		$this->user->ip = $this->request->server('REMOTE_ADDR', '-');
 
 		// Check for cookies
+		// We'll verify the cookies in the late intercept
 		$cookie_name = $this->config['cookie_name'];
 		if (
 			// Continue if user has an AnubisBB cookie...
 			$this->request->is_set($cookie_name . '_anubisbb', $this->request::COOKIE) ||
 			// ...or if user has a user id other anonymous
 			$this->request->variable($cookie_name . '_u', ANONYMOUS, false, $this->request::COOKIE) !== ANONYMOUS
-			// We'll verify the cookies in the late intercept
 		)
 		{
 			return;
 		}
 
 		// Bot check, from phpbb/session.php
+		// We'll check a second time in the late intercept
 		$active_bots = $this->cache->obtain_bots();
 		foreach ($active_bots as $row)
 		{
@@ -94,129 +94,13 @@ class intercept implements EventSubscriberInterface
 			}
 		}
 
-		// Check if we can skip this request
-		$path_normalize = $this->path_normalize();
-		switch ($path_normalize)
+
+		// Is the path one of the allowed bypass paths?
+		if ($this->path_bypass())
 		{
-			case 'app':
-				// Grab the route
-				$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-
-				// Allow only RSS feeds and myself
-				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages)/\w+$)~', $route))
-				{
-					return;
-				}
-			break;
-
-			case 'download/file':
-				if ($this->config['anubisbb_hot_linking'] === '1')
-				{
-					return;
-				}
-			break;
-
-			case 'ucp':
-				$mode = $this->request->variable('mode', '');
-
-				// Used by some captcha
-				if ($mode == 'confirm')
-				{
-					return;
-				}
-			break;
+			$this->intercept_request = false;
 		}
 
-		$this->logger->log('Intercept (early)');
-		$this->intercept();
-	}
-
-	public function late_intercept()
-	{
-		// TODO: Deny bad bots
-
-		// Good cookie, stop here
-		if ($this->anubis->validate_cookie())
-		{
-			return;
-		}
-
-		// Skip users and bots
-		if ($this->user->data['is_bot'] || $this->user->data['is_registered'])
-		{
-			return;
-		}
-
-		// Check if we can skip this request
-		$path_normalize = $this->path_normalize();
-		switch ($path_normalize)
-		{
-			case 'app':
-
-				// Grab the route
-				$route = substr($this->user->page['page_name'], strpos($this->user->page['page_name'], '/'));
-
-				// Everyone has access to the cron and feed routes
-				// user route is used for deleting cookies and forgotten passwords
-				// And of course don't block myself
-				if (preg_match('~^/(?:cron|feed|user|help|anubis/(?:api|pages)/\w+)(?:/|$)~', $route))
-				{
-					return;
-				}
-
-			break;
-
-			// Allow visitors to call for help
-			case 'memberlist':
-				$mode = $this->request->variable('mode', '');
-
-				if ($mode == 'contactadmin')
-				{
-					return;
-				}
-			break;
-
-			// Allow visitors to login
-			case 'ucp':
-				$mode = $this->request->variable('mode', '');
-
-				// You are on this site...
-				// but we do not grant you the rank of visitor
-				if (in_array($mode, ['privacy', 'terms']))
-				{
-					$this->user->session_kill(false);
-					return;
-				}
-
-				// Ignore login pages
-				if (in_array($mode, ['login', 'login_link', 'logout', 'confirm', 'sendpassword', 'activate', 'resend_act', 'delete_cookies']))
-				{
-					return;
-				}
-			break;
-
-			case 'download/file':
-				if ($this->config['anubisbb_hot_linking'] === '1')
-				{
-					return;
-				}
-		}
-
-		// Intercept request and send user to challenge page
-		$this->logger->log('Intercept (late)');
-
-		$this->user->session_kill(false);
-		$this->intercept();
-	}
-
-	private function path_normalize()
-	{
-		// Need to normalize the names due to weird paths for app.php and adm/index.php
-		return substr($this->user->page['page'], 0, strpos($this->user->page['page'], '.'));
-	}
-
-	private function intercept()
-	{
 		/**
 		 * Event to bypass Anubis
 		 *
@@ -234,19 +118,158 @@ class intercept implements EventSubscriberInterface
 			$user_agent        = $this->user->browser;
 			$ip_address        = $this->user->ip;
 			$page              = $this->user->page['page'];
-			$intercept_request = true;
+			$intercept_request = $this->intercept_request;
 		}
 
 		global $phpbb_dispatcher;
 		$vars = ['user_agent', 'ip_address', 'page', 'intercept_request'];
 		extract($phpbb_dispatcher->trigger_event('anubisbb.intercept.early', compact($vars)));
 
-		/** @noinspection PhpConditionAlreadyCheckedInspection */
-		if ($intercept_request !== true)
+		$this->intercept_request = $intercept_request;
+
+		if ($this->intercept_request !== true)
 		{
 			return;
 		}
 
+		$this->logger->log('Intercept');
+		$this->intercept();
+	}
+
+	public function late_intercept()
+	{
+		// Already decided not to intercept the request
+		if ($this->intercept_request !== true)
+		{
+			return;
+		}
+
+		// Good cookie, stop here
+		if ($this->anubis->validate_cookie())
+		{
+			return;
+		}
+
+		// Skip users and bots
+		if ($this->user->data['is_bot'] || $this->user->data['is_registered'])
+		{
+			return;
+		}
+
+		// Intercept request and send user to challenge page
+		$this->user->session_kill(false);
+		$this->logger->log('Intercept (late)');
+		$this->intercept();
+	}
+
+	private function get_path_cache()
+	{
+		$d = $this->cache->get_driver();
+		if (($paths = $d->get('anbuisbb_paths')) === false)
+		{
+			$paths = explode('\n', $this->config['anubisbb_paths']);
+			$paths = array_filter($paths, function ($v) {
+				if (preg_match('/^\s*#|^\s*$/', $v))
+				{
+					return false;
+				}
+				return true;
+			});
+			$d->put('anbuisbb_paths', $paths);
+		}
+		return $paths;
+	}
+
+	private function path_bypass()
+	{
+		// Grab the page minus the query string
+		$path_normalized = $this->user->page['page_name'];
+
+		// Strip off app from routes
+		$path_normalized = preg_replace('#^app\.php#', '', $path_normalized);
+
+		$mode = $this->request->variable('mode', '');
+
+		switch ($path_normalized)
+		{
+			// Non regex paths first
+			case 'download/file.php':
+				if ($this->config['anubisbb_hot_linking'] === '1')
+				{
+					return true;
+				}
+			break;
+
+			case 'memberlist':
+				if ($this->config['anubisbb_allow_extra_pages'] &&
+					$mode == 'contactadmin')
+				{
+					return true;
+				}
+			break;
+
+			case 'ucp.php':
+				// Used by some captcha
+				if ($mode == 'confirm')
+				{
+					return true;
+				}
+
+				// Allow login pages
+				if ($this->config['anubisbb_allow_extra_pages'] &&
+					in_array($mode, [
+						'activate',
+						'confirm',
+						'delete_cookies',
+						'login',
+						'login_link',
+						'logout',
+						'privacy',
+						'resend_act',
+						'sendpassword',
+						'terms',
+					]))
+				{
+					return true;
+				}
+
+			break;
+
+			default:
+				// Allow RSS feeds and myself
+				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages)/\w+$)~', $path_normalized))
+				{
+					return true;
+				}
+
+				// Allow extra pages
+				// cron: cron tasks, user: deleting cookies & forgotten passwords, help: faq page
+				if ($this->config['anubisbb_allow_extra_pages'] &&
+					preg_match('~^/(?:cron|user|help)(?:/|$)~', $path_normalized))
+				{
+					return true;
+				}
+
+				// Check admin provided paths
+				// These should all fall under the control of app.php
+				$path_cache = $this->get_path_cache();
+				foreach ($path_cache as $path)
+				{
+					// Take the path, escape any regex characters, convert escaped * into a wildcard.
+					// Always match the path from the start of the route
+					if (preg_match('#^' . str_replace('\*', '.*?', preg_quote($path, '#')) . '#i', $path_normalized))
+					{
+						return true;
+					}
+				}
+			break;
+		}
+
+		return false;
+	}
+
+	private function intercept()
+	{
 		$make_challenge = $this->anubis->routes['make'];
 		$no_js          = $this->anubis->routes['nojs'];
 

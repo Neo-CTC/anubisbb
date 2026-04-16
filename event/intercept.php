@@ -37,8 +37,6 @@ class intercept implements EventSubscriberInterface
 	private $anubis;
 	private $logger;
 
-	private $intercept_request;
-
 	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache)
 	{
 		$this->user    = $user;
@@ -48,8 +46,6 @@ class intercept implements EventSubscriberInterface
 
 		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
-
-		$this->intercept_request = true;
 	}
 
 	/**
@@ -131,36 +127,6 @@ class intercept implements EventSubscriberInterface
 			break;
 		}
 
-		/**
-		 * Event to bypass Anubis
-		 *
-		 * @event anubisbb.intercept.bypass
-		 * @var string user_agent Browser of the user
-		 * @var string ip_address IP address of the user
-		 * @var string path Current phpBB path
-		 * @var bool intercept_request Should AnubisBB intercept the request
-		 * @since 0.5.0
-		 */
-
-		// That's one way to shut up PHPStorm
-		/** @noinspection PhpUnusedLocalVariableInspection */
-		{
-			$user_agent        = $this->user->browser;
-			$ip_address        = $this->user->ip;
-			$page              = $this->user->page['page'];
-			$intercept_request = $this->intercept_request;
-		}
-
-		global $phpbb_dispatcher;
-		$vars = ['user_agent', 'ip_address', 'page', 'intercept_request'];
-		extract($phpbb_dispatcher->trigger_event('anubisbb-intercept.early', compact($vars)));
-
-		$this->intercept_request = $intercept_request;
-		if ($this->intercept_request !== true)
-		{
-			return;
-		}
-
 		$this->logger->log('Intercept (early)');
 		$this->intercept();
 	}
@@ -168,11 +134,6 @@ class intercept implements EventSubscriberInterface
 	public function late_intercept()
 	{
 		// TODO: Deny bad bots
-
-		if ($this->intercept_request !== true)
-		{
-			return;
-		}
 
 		// Good cookie, stop here
 		if ($this->anubis->validate_cookie())
@@ -256,6 +217,36 @@ class intercept implements EventSubscriberInterface
 
 	private function intercept()
 	{
+		/**
+		 * Event to bypass Anubis
+		 *
+		 * @event anubisbb.intercept.bypass
+		 * @var string user_agent Browser of the user
+		 * @var string ip_address IP address of the user
+		 * @var string path Current phpBB path
+		 * @var bool intercept_request Should AnubisBB intercept the request
+		 * @since 0.5.0
+		 */
+
+		// That's one way to shut up PHPStorm
+		/** @noinspection PhpUnusedLocalVariableInspection */
+		{
+			$user_agent        = $this->user->browser;
+			$ip_address        = $this->user->ip;
+			$page              = $this->user->page['page'];
+			$intercept_request = true;
+		}
+
+		global $phpbb_dispatcher;
+		$vars = ['user_agent', 'ip_address', 'page', 'intercept_request'];
+		extract($phpbb_dispatcher->trigger_event('anubisbb.intercept.early', compact($vars)));
+
+		/** @noinspection PhpConditionAlreadyCheckedInspection */
+		if ($intercept_request !== true)
+		{
+			return;
+		}
+
 		$make_challenge = $this->anubis->routes['make'];
 		$no_js          = $this->anubis->routes['nojs'];
 

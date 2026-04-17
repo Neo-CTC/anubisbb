@@ -49,11 +49,14 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_STRICT_STRICT'  => 'Strict',
 	'ACP_ANUBISBB_SETTINGS_STRICT_LENIENT' => 'Lenient',
 
-	'ACP_ANUBISBB_SETTINGS_EARLY'         => 'Early intercept',
-	'ACP_ANUBISBB_SETTINGS_EARLY_EXPLAIN' => 'Run a simple script before all phpBB pages. This adds protection to the login and contact pages but may cause issues.',
-
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachments). This allows visitors to view these files without passing a challenge both onsite and offsite (hot linking).',
+
+	'ACP_ANUBISBB_SETTINGS_EXTRA_PAGES'         => 'Bypass import pages',
+	'ACP_ANUBISBB_SETTINGS_EXTRA_PAGES_EXPLAIN' => 'Disable protections for pages related to logging in and the contact us page. Enable only if you are having problems with the extension as this could open the forum to attacks',
+
+	'ACP_ANUBISBB_SETTINGS_PATHS'         => 'Bypass paths',
+	'ACP_ANUBISBB_SETTINGS_PATHS_EXPLAIN' => 'Paths or routes to disable protections for. Remove `app.php` from the start of any route',
 
 	'ACP_ANUBISBB_SETTINGS_LOG_ENABLE'     => 'Enable logging',
 	'ACP_ANUBISBB_SETTINGS_LOG_ROTATE_MAX' => 'Number of log files to keep',

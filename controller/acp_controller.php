@@ -11,7 +11,9 @@
 namespace neodev\anubisbb\controller;
 
 use neodev\anubisbb\core\anubis_core;
+use phpbb\cache\service as cache;
 use phpbb\config\config;
+use phpbb\config\db_text as config_text;
 use phpbb\controller\helper as controller_helper;
 use phpbb\language\language;
 use phpbb\log\log;
@@ -24,26 +26,15 @@ use phpbb\user;
  */
 class acp_controller
 {
-	/** @var \phpbb\config\config */
+	private $cache;
 	private $config;
+	private $config_text;
 	private $controller_helper;
-
-	/** @var \phpbb\language\language */
 	private $language;
-
-	/** @var \phpbb\log\log */
 	private $log;
-
-	/** @var \phpbb\request\request */
 	private $request;
-
-	/** @var \phpbb\template\template */
 	private $template;
-
-	/** @var \phpbb\user */
 	private $user;
-
-	/** @var string Custom form action */
 	private $u_action;
 
 	/**
@@ -56,7 +47,7 @@ class acp_controller
 	 * @param \phpbb\template\template $template Template object
 	 * @param \phpbb\user              $user     User object
 	 */
-	public function __construct(config $config, controller_helper $helper, language $language, log $log, request $request, template $template, user $user)
+	public function __construct(config $config, controller_helper $helper, language $language, log $log, request $request, template $template, user $user, config_text  $config_text, cache $cache)
 	{
 		$this->config            = $config;
 		$this->controller_helper = $helper;
@@ -65,6 +56,8 @@ class acp_controller
 		$this->request           = $request;
 		$this->template          = $template;
 		$this->user              = $user;
+		$this->config_text       = $config_text;
+		$this->cache             = $cache;
 	}
 
 	/**
@@ -128,8 +121,11 @@ class acp_controller
 					$this->config->set('anubisbb_difficulty', $difficulty);
 					$this->config->set('anubisbb_ctime', $cookie_time);
 					$this->config->set('anubisbb_strict_cookies', $this->request->variable('strict_cookies', true));
-					$this->config->set('anubisbb_early', $this->request->variable('early', false));
 					$this->config->set('anubisbb_hot_linking', $this->request->variable('hot_linking', false));
+					$this->config->set('anubisbb_allow_extra_pages', $this->request->variable('extra_pages', false));
+					$this->config_text->set('anubisbb_paths', $this->request->variable('bypass_paths', ''));
+					$this->cache->get_driver()->destroy('anbuisbb_paths_cache');
+
 					$this->config->set('anubisbb_log_enabled', $log_enable);
 					$this->config->set('anubisbb_log_path', $path);
 					$this->config->set('anubisbb_log_rotate_max', $log_rotate);
@@ -156,8 +152,9 @@ class acp_controller
 			'CONFIG_DIFFICULTY'  => $this->config['anubisbb_difficulty'],
 			'CONFIG_TIME'        => $this->config['anubisbb_ctime'],
 			'CONFIG_STRICT'      => $this->config['anubisbb_strict_cookies'],
-			'CONFIG_EARLY'       => $this->config['anubisbb_early'],
 			'CONFIG_HOT_LINKING' => $this->config['anubisbb_hot_linking'],
+			'CONFIG_EXTRA_PAGES' => $this->config['anubisbb_allow_extra_pages'],
+			'CONFIG_PATHS'       => $this->config_text->get('anubisbb_paths'),
 
 			'CONFIG_LOG_ENABLE'     => $this->config['anubisbb_log_enabled'],
 			'CONFIG_LOG_PATH'       => $this->config['anubisbb_log_path'],

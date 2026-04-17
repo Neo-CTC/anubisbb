@@ -30,6 +30,8 @@ services:
             - '@request'
             - '@template'
             - '@user'
+            - '@config_text'
+            - '@cache'
 
     neodev.anubisbb.interceptor:
         class: neodev\anubisbb\event\intercept
@@ -39,6 +41,7 @@ services:
             - '@config'
             - '@controller.helper'
             - '@cache'
+            - '@config_text'
         tags:
             - { name: event.listener }
 

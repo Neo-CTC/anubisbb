@@ -14,6 +14,7 @@ use neodev\anubisbb\core\anubis_core;
 use neodev\anubisbb\core\logger;
 use phpbb\cache\service as cache;
 use phpbb\config\config;
+use phpbb\config\db_text as config_text;
 use phpbb\controller\helper as controller_helper;
 use phpbb\request\request;
 use phpbb\user;
@@ -33,18 +34,20 @@ class intercept implements EventSubscriberInterface
 	private $request;
 	private $config;
 	private $cache;
+	private $config_text;
 
 	private $anubis;
 	private $logger;
 
 	private $intercept_request;
 
-	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache)
+	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache, config_text $config_text)
 	{
-		$this->user    = $user;
-		$this->request = $request;
-		$this->config  = $config;
-		$this->cache   = $cache;
+		$this->user        = $user;
+		$this->request     = $request;
+		$this->config      = $config;
+		$this->cache       = $cache;
+		$this->config_text = $config_text;
 
 		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
@@ -164,10 +167,11 @@ class intercept implements EventSubscriberInterface
 
 	private function get_path_cache()
 	{
-		$d = $this->cache->get_driver();
-		if (($paths = $d->get('anbuisbb_paths')) === false)
+		$d     = $this->cache->get_driver();
+		$paths = $d->get('anbuisbb_paths_cache');
+		if ($paths === false)
 		{
-			$paths = explode('\n', $this->config['anubisbb_paths']);
+			$paths = explode("\n", $this->config_text->get('anubisbb_paths'));
 			$paths = array_filter($paths, function ($v) {
 				if (preg_match('/^\s*#|^\s*$/', $v))
 				{
@@ -175,7 +179,7 @@ class intercept implements EventSubscriberInterface
 				}
 				return true;
 			});
-			$d->put('anbuisbb_paths', $paths);
+			$d->put('anbuisbb_paths_cache', $paths);
 		}
 		return $paths;
 	}
@@ -200,7 +204,7 @@ class intercept implements EventSubscriberInterface
 				}
 			break;
 
-			case 'memberlist':
+			case 'memberlist.php':
 				if ($this->config['anubisbb_allow_extra_pages'] &&
 					$mode == 'contactadmin')
 				{
@@ -257,7 +261,7 @@ class intercept implements EventSubscriberInterface
 				{
 					// Take the path, escape any regex characters, convert escaped * into a wildcard.
 					// Always match the path from the start of the route
-					if (preg_match('#^' . str_replace('\*', '.*?', preg_quote($path, '#')) . '#i', $path_normalized))
+					if (preg_match('#^' . str_replace('\*', '.*?', preg_quote($path, '#')) . '$#i', $path_normalized))
 					{
 						return true;
 					}

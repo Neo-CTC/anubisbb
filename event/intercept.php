@@ -126,7 +126,7 @@ class intercept implements EventSubscriberInterface
 
 		global $phpbb_dispatcher;
 		$vars = ['user_agent', 'ip_address', 'page', 'intercept_request'];
-		extract($phpbb_dispatcher->trigger_event('anubisbb.intercept.early', compact($vars)));
+		extract($phpbb_dispatcher->trigger_event('anubisbb.intercept.bypass', compact($vars)));
 
 		$this->intercept_request = $intercept_request;
 

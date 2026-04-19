@@ -16,7 +16,9 @@
 			"login": "{{ login_path }}",
 			"contact": "{{ contact_path }}"
 		},
-		"user_lang": "{{ user_lang }}"
+		"user_lang": "{{ user_lang }}"{% if challenge %},
+		"user_interact_pre": "{{ interact_pre }}",
+		"user_interact_post": "{{ interact_post }}"{% endif %}
 	}
 	</script>
 	{% if challenge %}

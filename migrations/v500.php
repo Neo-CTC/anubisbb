@@ -16,8 +16,7 @@ class v500 extends migration
 {
 	public function effectively_installed()
 	{
-		// return isset($this->config['anubisbb_paths']);
-		return false;
+		return isset($this->config['anubisbb_user_interact_post']);
 	}
 
 	public static function depends_on()
@@ -42,6 +41,8 @@ class v500 extends migration
 			['config.add', ['anubisbb_allow_extra_pages', 0]],
 			['config.remove', ['anubisbb_early']],
 			['config.add', ['anubisbb_min_hash_time', 0]],
+			['config.add', ['anubisbb_user_interact_pre', 0]],
+			['config.add', ['anubisbb_user_interact_post', 1]],
 		];
 	}
 }

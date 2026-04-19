@@ -160,6 +160,9 @@ class api_controller
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
 				'hash_time'  => $this->config['anubisbb_min_hash_time'],
+
+				'interact_pre' => $this->config['anubisbb_user_interact_pre'],
+				'interact_post' => $this->config['anubisbb_user_interact_post'],
 			]);
 
 			$t  = time();

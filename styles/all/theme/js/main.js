@@ -194,129 +194,153 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
   status.appendChild(rateText);
 
   let lastSpeedUpdate = 0;
-  let baseIters = 0;
+  let baseIters = null;
   let showingApology = false;
   const likelihood = Math.pow(16, -rules.report_as);
 
-  // Start up workers
-  try {
-    const t0 = Date.now();
-    const { hash, nonce } = await process(
-        challenge,
-        rules.difficulty,
-        abort_controller.signal,
-        (iters) => {
-        const delta = Date.now() - t0;
-        // only update the speed every second so it's less visually distracting
-        if (delta - lastSpeedUpdate > 1000) {
-          lastSpeedUpdate = delta;
-          rateText.data = lang('rate', (iters / delta).toFixed(3));
+  const worker_process = async () => {
+    // Start up workers
+    try {
+      const t0 = Date.now();
+      const {hash, nonce} = await process(
+          challenge,
+          rules.difficulty,
+          abort_controller.signal,
+          (iters) => {
+            const delta = Date.now() - t0;
+            // only update the speed every second so it's less visually distracting
+            if (delta - lastSpeedUpdate > 1000) {
+              lastSpeedUpdate = delta;
+              rateText.data = lang('rate', (iters / delta).toFixed(3));
+            }
+            // Fill the bar up to the halfway mark once the minimum time has been meet
+            let bar_width = 0
+            if (minimum_time !== "0") {
+              bar_width = Math.min((delta / (minimum_time * 1000) * 50), 50)
+            }
+
+            if (bar_width === 50 || minimum_time === "0") {
+              if (baseIters === null) {
+                baseIters = iters;
+              }
+
+              iters -= baseIters;
+              // the probability of still being on the page is (1 - likelihood) ^ iters.
+              // by definition, half of the time the progress bar only gets to half, so
+              // apply a polynomial ease-out function to move faster in the beginning
+              // and then slow down as things get increasingly unlikely. quadratic felt
+              // the best in testing, but this may need adjustment in the future.
+
+              const probability = Math.pow(1 - likelihood, iters);
+              const distance = (1 - Math.pow(probability, 2)) * (100 - bar_width);
+              // const distance = (1 - probability) * 50;
+
+              if (probability < 0.1 && !showingApology) {
+                status.append(
+                    document.createElement("br"),
+                    document.createTextNode(
+                        lang('verification_time'),
+                    ),
+                );
+                showingApology = true;
+              }
+
+              bar_width = Math.round(bar_width + distance)
+            }
+            progress["aria-valuenow"] = bar_width;
+            progress.firstElementChild.style.width = `${bar_width}%`;
+          },
+          minimum_time
+      );
+      const t1 = Date.now();
+
+      title.innerHTML = lang('success');
+      attempt_count += 1
+      sessionStorage.setItem('anubis_attempts', attempt_count.toString())
+
+      const url_here = new URL(window.location.href)
+      let redir;
+      if (url_here.searchParams.get('redir')) {
+        redir = url_here.searchParams.get('redir')
+      } else {
+        redir = '';
+      }
+      const goto = u(passRoute, {
+        response: hash,
+        nonce,
+        redir,
+        timestamp,
+        elapsedTime: t1 - t0
+      })
+
+      status.innerHTML = lang('finished', (t1 - t0), nonce);
+      image.src = imageURL("happy", anubisVersion, staticPrefix);
+
+      if (userReadDetails) {
+        const container = document.getElementById("progress");
+
+        // Style progress bar as a continue button
+        container.style.display = "flex";
+        container.style.alignItems = "center";
+        container.style.justifyContent = "center";
+        container.style.height = "2rem";
+        container.style.borderRadius = "1rem";
+        container.style.cursor = "pointer";
+        container.style.background = "#b16286";
+        container.style.color = "white";
+        container.style.fontWeight = "bold";
+        container.style.outline = "4px solid #b16286";
+        container.style.outlineOffset = "2px";
+        container.style.width = "min(20rem, 90%)";
+        container.style.margin = "1rem auto 2rem";
+        container.innerHTML = lang('finished_reading');
+
+        function onDetailsExpand() {
+          window.location.assign(goto,);
         }
-        // Fill the bar up to the halfway mark once the minimum time has been meet
-        let bar_width = Math.min((delta / (minimum_time * 1000) * 50), 50)
 
-        if (bar_width === 50) {
-          if (baseIters === 0)
-          {
-            baseIters = iters;
-          }
+        container.onclick = onDetailsExpand;
+        setTimeout(onDetailsExpand, 30000);
 
-          iters -= baseIters;
-          // the probability of still being on the page is (1 - likelihood) ^ iters.
-          // by definition, half of the time the progress bar only gets to half, so
-          // apply a polynomial ease-out function to move faster in the beginning
-          // and then slow down as things get increasingly unlikely. quadratic felt
-          // the best in testing, but this may need adjustment in the future.
+      } else {
 
-          const probability = Math.pow(1 - likelihood, iters);
-          const distance = (1 - Math.pow(probability, 2)) * 50;
-          // const distance = (1 - probability) * 50;
+        let fc = progress.firstElementChild;
+        fc.style.width = '100%';
+        fc.style.color = '#f9f5d7';
+        fc.style.display = 'flex';
+        fc.innerHTML = `<a href="${goto}">` + lang('finished_progress_bar', goto) + "</a>";
 
-          if (probability < 0.1 && !showingApology) {
-            status.append(
-                document.createElement("br"),
-                document.createTextNode(
-                    lang('verification_time'),
-                ),
-            );
-            showingApology = true;
-          }
-
-          bar_width = Math.round(bar_width + distance)
+        if (!userInteractPost) {
+          setTimeout(() => {
+            window.location.assign(goto);
+          }, 1000);
         }
-        progress["aria-valuenow"] = bar_width;
-        progress.firstElementChild.style.width = `${bar_width}%`;
-      },
-        minimum_time
-    );
-    const t1 = Date.now();
-
-    title.innerHTML = lang('success');
-    attempt_count += 1
-    sessionStorage.setItem('anubis_attempts',attempt_count.toString())
-
-    const url_here = new URL(window.location.href)
-    let redir;
-    if (url_here.searchParams.get('redir')) {
-      redir = url_here.searchParams.get('redir')
-    } else {
-      redir = '';
-    }
-    const goto = u(passRoute, {
-          response: hash,
-          nonce,
-          redir,
-          timestamp,
-          elapsedTime: t1 - t0
-        })
-
-    status.innerHTML = lang('finished', (t1 - t0), nonce);
-    image.src = imageURL("happy", anubisVersion, staticPrefix);
-
-    if (userReadDetails) {
-      const container = document.getElementById("progress");
-
-      // Style progress bar as a continue button
-      container.style.display = "flex";
-      container.style.alignItems = "center";
-      container.style.justifyContent = "center";
-      container.style.height = "2rem";
-      container.style.borderRadius = "1rem";
-      container.style.cursor = "pointer";
-      container.style.background = "#b16286";
-      container.style.color = "white";
-      container.style.fontWeight = "bold";
-      container.style.outline = "4px solid #b16286";
-      container.style.outlineOffset = "2px";
-      container.style.width = "min(20rem, 90%)";
-      container.style.margin = "1rem auto 2rem";
-      container.innerHTML = lang('finished_reading');
-
-      function onDetailsExpand() {
-        window.location.assign(goto,);
       }
 
-      container.onclick = onDetailsExpand;
-      setTimeout(onDetailsExpand, 30000);
-
-    } else {
-
-      let fc = progress.firstElementChild
-      fc.style.width = '100%';
-      fc.style.color = '#f9f5d7';
-      fc.style.display = 'flex';
-      fc.innerHTML = lang('finished_progress_bar', goto);
-
-      setTimeout(() => {
-        window.location.assign(goto);
-      }, 1000);
+    } catch (err) {
+      ohNoes({
+        titleMsg: lang('calculation_error_title'),
+        statusMsg: lang('calculation_error', err.message),
+        imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+      });
     }
+  }
 
-  } catch (err) {
-    ohNoes({
-      titleMsg: lang('calculation_error_title'),
-      statusMsg: lang('calculation_error', err.message),
-      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+  if (userInteractPre) {
+    let fc = progress.firstElementChild;
+    fc.style.width = '100%';
+    fc.style.color = '#f9f5d7';
+    fc.style.display = 'flex';
+    const b = document.createElement('button')
+    b.innerText = lang('start_button')
+    b.addEventListener('click', ()=>{
+      fc.innerHTML = '';
+      fc.style.width = "0";
+      setTimeout(worker_process,500)
     });
+    fc.append(b);
+  }
+  else {
+    await worker_process()
   }
 })();

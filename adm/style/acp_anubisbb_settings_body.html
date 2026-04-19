@@ -73,6 +73,25 @@
 
 		<dl>
 			<dt>
+				<label for="setting_interact_pre">{{ lang('ACP_ANUBISBB_SETTINGS_INTERACT_PRE') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_INTERACT_PRE_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_interact_pre" type="checkbox" name="interact_pre" {% if CONFIG_INTERACT_PRE %}checked{% endif %} value="1">
+			</dd>
+		</dl>
+		<dl>
+			<dt>
+				<label for="setting_interact_post">{{ lang('ACP_ANUBISBB_SETTINGS_INTERACT_POST') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_INTERACT_POST_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_interact_post" type="checkbox" name="interact_post" {% if CONFIG_INTERACT_POST %}checked{% endif %} value="1">
+			</dd>
+		</dl>
+
+		<dl>
+			<dt>
 				<label for="setting_hot_linking">{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING') }}</label><br>
 				<span>{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN') }}</span>
 			</dt>

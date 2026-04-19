@@ -6,7 +6,7 @@
   "challenge_error_title": "Challenge error!",
   "cookies_disabled": "Cookies are disabled. Please enable cookies before trying again",
   "finished": "Done! Took {0}ms, {1} iterations",
-  "finished_progress_bar": "<a href=\"{0}\" style=\"color: inherit; background-color: unset; flex: 1; align-content: center;font-weight: bold\">Continue →</a>",
+  "finished_progress_bar": "Continue →",
   "finished_reading": "I've finished reading, continue →",
   "general_error_title": "Oh noes!",
   "missing_crypto": "Your browser doesn't have a functioning web.crypto element. Are you viewing this over a secure context?",
@@ -17,6 +17,7 @@
   "process_error": "Failed to resolve check algorithm. You may want to reload the page.",
   "rate": "Speed: {0}kH/s",
   "security_error": "Security settings preventing Anubis from running",
+  "start_button": "Click to verify",
   "status": "Calculating...<br/>Difficulty: {0}, ",
   "success": "Success!",
   "verification_time": "Verification is taking longer than expected. Please do not refresh the page."

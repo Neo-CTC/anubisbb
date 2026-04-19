@@ -28,6 +28,19 @@
 	transition: width 0.25s ease-in;
 }
 
+.bar-inner a,button {
+	align-content: center;
+	background: none;
+	border: none;
+	color: inherit;
+	cursor: pointer;
+	flex: 1;
+	font-size: inherit;
+	font-family: inherit;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
 .centered-div .panel {
 	text-align: left;
 }

@@ -52,6 +52,11 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_HASH_TIME'         => 'Minimum hash time',
 	'ACP_ANUBISBB_SETTINGS_HASH_TIME_EXPLAIN' => 'Set the minimum amount of time in seconds a visitor must send on the challenge before access is granted. Set to 0 to disable.',
 
+	'ACP_ANUBISBB_SETTINGS_INTERACT_PRE' => 'Require interaction to start',
+	'ACP_ANUBISBB_SETTINGS_INTERACT_PRE_EXPLAIN' => 'Visitor must click button to start verification process',
+	'ACP_ANUBISBB_SETTINGS_INTERACT_POST' => 'Require interaction to continue',
+	'ACP_ANUBISBB_SETTINGS_INTERACT_POST_EXPLAIN' => 'Visitor must click link to finish verification process',
+
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachments). This allows visitors to view these files without passing a challenge both onsite and offsite (hot linking).',
 

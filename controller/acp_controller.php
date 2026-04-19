@@ -47,7 +47,7 @@ class acp_controller
 	 * @param \phpbb\template\template $template Template object
 	 * @param \phpbb\user              $user     User object
 	 */
-	public function __construct(config $config, controller_helper $helper, language $language, log $log, request $request, template $template, user $user, config_text  $config_text, cache $cache)
+	public function __construct(config $config, controller_helper $helper, language $language, log $log, request $request, template $template, user $user, config_text $config_text, cache $cache)
 	{
 		$this->config            = $config;
 		$this->controller_helper = $helper;
@@ -100,7 +100,7 @@ class acp_controller
 				$cookie_time = min($cookie_time, 34186670); // upper limit 13 months
 
 				$hash_time = $this->request->variable('hash_time', 0);
-				$hash_time = max($hash_time, 0); // lower limit
+				$hash_time = max($hash_time, 0);   // lower limit
 				$hash_time = min($hash_time, 120); // upper limit of 2 minutes. why would you need 2 minutes??
 
 				$log_enable = $this->request->variable('log_enable', false);
@@ -126,6 +126,8 @@ class acp_controller
 					$this->config->set('anubisbb_ctime', $cookie_time);
 					$this->config->set('anubisbb_min_hash_time', $hash_time);
 					$this->config->set('anubisbb_strict_cookies', $this->request->variable('strict_cookies', true));
+					$this->config->set('anubisbb_user_interact_pre', $this->request->variable('interact_pre', false));
+					$this->config->set('anubisbb_user_interact_post', $this->request->variable('interact_post', false));
 					$this->config->set('anubisbb_hot_linking', $this->request->variable('hot_linking', false));
 					$this->config->set('anubisbb_allow_extra_pages', $this->request->variable('extra_pages', false));
 					$this->config_text->set('anubisbb_paths', $this->request->variable('bypass_paths', ''));
@@ -154,10 +156,14 @@ class acp_controller
 
 			'U_ACTION' => $this->u_action,
 
-			'CONFIG_DIFFICULTY'  => $this->config['anubisbb_difficulty'],
-			'CONFIG_TIME'        => $this->config['anubisbb_ctime'],
-			'CONFIG_STRICT'      => $this->config['anubisbb_strict_cookies'],
-			'CONFIG_HASH_TIME'    => $this->config['anubisbb_min_hash_time'],
+			'CONFIG_DIFFICULTY' => $this->config['anubisbb_difficulty'],
+			'CONFIG_TIME'       => $this->config['anubisbb_ctime'],
+			'CONFIG_STRICT'     => $this->config['anubisbb_strict_cookies'],
+			'CONFIG_HASH_TIME'  => $this->config['anubisbb_min_hash_time'],
+
+			'CONFIG_INTERACT_PRE'  => $this->config['anubisbb_user_interact_pre'],
+			'CONFIG_INTERACT_POST' => $this->config['anubisbb_user_interact_post'],
+
 			'CONFIG_HOT_LINKING' => $this->config['anubisbb_hot_linking'],
 			'CONFIG_EXTRA_PAGES' => $this->config['anubisbb_allow_extra_pages'],
 			'CONFIG_PATHS'       => $this->config_text->get('anubisbb_paths'),

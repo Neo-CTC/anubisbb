@@ -308,11 +308,17 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
         fc.style.width = '100%';
         fc.style.color = '#f9f5d7';
         fc.style.display = 'flex';
-        fc.innerHTML = `<a href="${goto}">` + lang('finished_progress_bar', goto) + "</a>";
+        const b = document.createElement('button')
+        b.innerText = lang('finished_progress_bar')
+        b.attributes.href = goto
+        b.addEventListener('click', ()=>{
+          window.location.replace(goto)
+        })
+        fc.append(b)
 
         if (!userInteractPost) {
           setTimeout(() => {
-            window.location.assign(goto);
+            window.location.replace(goto);
           }, 1000);
         }
       }

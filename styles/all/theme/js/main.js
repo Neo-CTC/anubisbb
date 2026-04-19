@@ -316,7 +316,7 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
         })
         fc.append(b)
 
-        if (!userInteractPost) {
+        if (userInteractPost === "0") {
           setTimeout(() => {
             window.location.replace(goto);
           }, 1000);
@@ -332,7 +332,7 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
     }
   }
 
-  if (userInteractPre) {
+  if (userInteractPre === "1") {
     let fc = progress.firstElementChild;
     fc.style.width = '100%';
     fc.style.color = '#f9f5d7';

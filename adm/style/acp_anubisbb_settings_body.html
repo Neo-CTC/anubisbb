@@ -63,6 +63,16 @@
 
 		<dl>
 			<dt>
+				<label for="setting_hash_time">{{ lang('ACP_ANUBISBB_SETTINGS_HASH_TIME') }}</label><br>
+				<span>{{ lang('ACP_ANUBISBB_SETTINGS_HASH_TIME_EXPLAIN') }}</span>
+			</dt>
+			<dd>
+				<input id="setting_hash_time" type="number" min="0" max="120" step="1" name="hash_time" value="{{ CONFIG_HASH_TIME }}" style="width: unset">
+			</dd>
+		</dl>
+
+		<dl>
+			<dt>
 				<label for="setting_hot_linking">{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING') }}</label><br>
 				<span>{{ lang('ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN') }}</span>
 			</dt>

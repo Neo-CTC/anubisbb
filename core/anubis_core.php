@@ -139,11 +139,20 @@ class anubis_core
 
 		$timestamp = $this->request->variable('timestamp', 0);
 		$time      = time();
+		$hash_time = $this->request->variable('elapsedTime', 0);
+		$min_time = (int) $this->config['anubisbb_min_hash_time'];
 
 		// Timestamp can't be in the future nor older than 10 minutes
 		if ($timestamp > $time || $timestamp < $time - 600)
 		{
 			$this->error = 'Invalid timestamp';
+			return false;
+		}
+
+		// Enforce minimum hash time
+		if ($hash_time < $min_time * 1000 || $time - $timestamp < $min_time)
+		{
+			$this->error = 'Bad hash time';
 			return false;
 		}
 

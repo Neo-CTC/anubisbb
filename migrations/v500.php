@@ -41,6 +41,7 @@ class v500 extends migration
 ']],
 			['config.add', ['anubisbb_allow_extra_pages', 0]],
 			['config.remove', ['anubisbb_early']],
+			['config.add', ['anubisbb_min_hash_time', 0]],
 		];
 	}
 }

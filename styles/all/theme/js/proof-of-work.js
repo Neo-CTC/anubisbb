@@ -3,9 +3,9 @@ export default function process(
   difficulty = 5,
   signal = null,
   progressCallback = null,
-  threads = (navigator.hardwareConcurrency || 1),
+  minTime = 0
 ) {
-  console.debug("fast algo");
+  const threads = (navigator.hardwareConcurrency || 1)
   return new Promise((resolve, reject) => {
     let webWorkerURL = URL.createObjectURL(new Blob([
       '(', processTask(), ')()'
@@ -49,6 +49,7 @@ export default function process(
         difficulty,
         nonce: i,
         threads,
+        minTime,
       });
 
       workers.push(worker);
@@ -77,6 +78,8 @@ function processTask() {
       let hash;
       let nonce = event.data.nonce;
       let threads = event.data.threads;
+      let minTime = event.data.minTime;
+      const t0 = Date.now()
 
       const threadId = nonce;
 
@@ -97,9 +100,9 @@ function processTask() {
           }
         }
 
-        if (valid) {
+        if (valid && Date.now() - t0 > minTime * 1000) {
           hash = uint8ArrayToHexString(thisHash);
-          console.log(hash);
+          // console.debug(threadId, nonce, hash);
           break;
         }
 

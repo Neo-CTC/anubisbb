@@ -71,7 +71,7 @@ class api_controller
 		$redirect = $this->request->variable('redir', '');
 
 		// Somehow the redirect points back to us??
-		if (preg_match('~/anubis/(api|pages)/~', $this->redirect))
+		if (preg_match('~/anubis/(api|pages)/~', $redirect))
 		{
 			$redirect = '';
 		}
@@ -159,6 +159,7 @@ class api_controller
 				'difficulty' => $this->config['anubisbb_difficulty'],
 				'challenge'  => $challenge,
 				'timestamp'  => $time,
+				'hash_time'  => $this->config['anubisbb_min_hash_time'],
 			]);
 
 			$t  = time();

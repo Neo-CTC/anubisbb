@@ -1,16 +1,8 @@
 import processFast from "./proof-of-work.js?hash=e622b3b1";
-import processSlow from "./proof-of-work-slow.js?hash=044caefa";
-import {testVideo} from "./video.js";
 
 const abort_controller = new AbortController();
 globalThis.anubis_abort = abort_controller
 
-const algorithms = {
-  "fast": processFast,
-  "slow": processSlow,
-};
-
-// from Xeact
 const u = (url = "", params = {}) => {
   let result = new URL(url, window.location.href);
   Object.entries(params).forEach(([k, v]) => result.searchParams.set(k, v));
@@ -20,8 +12,6 @@ const u = (url = "", params = {}) => {
 const imageURL = (mood, cacheBuster, staticPrefix) =>
   u(`${staticPrefix}img/${mood}.webp`, { cacheBuster });
 
-
-
 (async () => {
   const anubis_settings = JSON.parse(document.getElementById('anubis_settings').textContent)
 
@@ -29,14 +19,16 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
   const image = document.getElementById('image');
   const title = document.getElementById('title');
   const progress = document.getElementById('progress');
+  const details = document.querySelector('details');
 
   const anubisVersion = anubis_settings['version'];
   const staticPrefix = anubis_settings['static_prefix'];
   const passRoute = anubis_settings['routes']['pass'];
   const loginPath = anubis_settings['routes']['login'];
   const contactPath = anubis_settings['routes']['contact'];
+  const userInteractPre = anubis_settings['user_interact_pre']
+  const userInteractPost = anubis_settings['user_interact_post']
 
-  const details = document.querySelector('details');
   let userReadDetails = false;
 
   if (details) {
@@ -56,7 +48,8 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
 
   const fetch_lang = async (lang) => {
     try {
-      const f = await fetch(`${staticPrefix}language/${lang}/strings.json?hash=b969197f`);
+      // Fetch the file or timeout after 5 seconds
+      const f = await fetch(`${staticPrefix}language/${lang}/strings.json?hash=b969197f`, { signal: AbortSignal.timeout(5000)});
       if (f.status !== 200 || f.headers.get('Content-Type') !== 'application/json'){
         console.warn('Bad response for language file', f)
         return false;
@@ -105,19 +98,6 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
     return;
   }
 
-  // const testarea = document.getElementById('testarea');
-
-  // const videoWorks = await testVideo(testarea);
-  // console.log(`videoWorks: ${videoWorks}`);
-
-  // if (!videoWorks) {
-  //   title.innerHTML = "Oh no!";
-  //   status.innerHTML = "Checks failed. Please check your browser's settings and try again.";
-  //   image.src = imageURL("reject");
-  //   progress.style.display = "none";
-  //   return;
-  // }
-
   status.innerHTML = lang('calculating');
 
   const dependencies = [
@@ -143,45 +123,22 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
     }
   }
 
-  const { challenge, timestamp, rules } = JSON.parse(document.getElementById('challenge').textContent);
-
-  const process = algorithms[rules.algorithm];
-  if (!process) {
-    ohNoes({
-      titleMsg: lang('challenge_error_title'),
-      statusMsg: lang('process_error'),
-      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
-    });
-    return;
-  }
-
-  status.innerHTML = lang('status', rules.report_as);
-  progress.style.display = "inline-block";
-
-  // the whole text, including "Speed:", as a single node, because some browsers
-  // (Firefox mobile) present screen readers with each node as a separate piece
-  // of text.
-  const rateText = document.createTextNode(lang('rate', '0'));
-  status.appendChild(rateText);
-
-  let lastSpeedUpdate = 0;
-  let showingApology = false;
-  const likelihood = Math.pow(16, -rules.report_as);
-
+  // Limit to 3 attempts. If it takes more than that, something is very wrong
   let attempt_count = 0;
   try {
     let c = document.cookie
 
     // Should have received a cookie from the api
     if (c.length === 0) {
-        ohNoes({
-          titleMsg: lang('general_error_title'),
-          statusMsg: lang('cookies_disabled'),
-          imageSrc: imageURL("reject", anubisVersion, staticPrefix),
-        });
-        return;
+      ohNoes({
+        titleMsg: lang('general_error_title'),
+        statusMsg: lang('cookies_disabled'),
+        imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+      });
+      return;
     }
 
+    // Attempt to fetch count from storage, throws SecurityError if local storage is blocked
     attempt_count = parseInt(sessionStorage.getItem('anubis_attempts'))
     if (isNaN(attempt_count)) {
       attempt_count = 0;
@@ -215,43 +172,84 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
     return;
   }
 
+  const { challenge, timestamp, rules, minimum_time } = JSON.parse(document.getElementById('challenge').textContent);
+
+  const process = processFast;
+  if (!process) {
+    ohNoes({
+      titleMsg: lang('challenge_error_title'),
+      statusMsg: lang('process_error'),
+      imageSrc: imageURL("reject", anubisVersion, staticPrefix),
+    });
+    return;
+  }
+
+  status.innerHTML = lang('status', rules.report_as);
+  progress.style.display = "inline-block";
+
+  // the whole text, including "Speed:", as a single node, because some browsers
+  // (Firefox mobile) present screen readers with each node as a separate piece
+  // of text.
+  const rateText = document.createTextNode(lang('rate', '0'));
+  status.appendChild(rateText);
+
+  let lastSpeedUpdate = 0;
+  let baseIters = 0;
+  let showingApology = false;
+  const likelihood = Math.pow(16, -rules.report_as);
+
+  // Start up workers
   try {
     const t0 = Date.now();
     const { hash, nonce } = await process(
-      challenge,
-      rules.difficulty,
-      abort_controller.signal,
-      (iters) => {
+        challenge,
+        rules.difficulty,
+        abort_controller.signal,
+        (iters) => {
         const delta = Date.now() - t0;
         // only update the speed every second so it's less visually distracting
         if (delta - lastSpeedUpdate > 1000) {
           lastSpeedUpdate = delta;
           rateText.data = lang('rate', (iters / delta).toFixed(3));
         }
-        // the probability of still being on the page is (1 - likelihood) ^ iters.
-        // by definition, half of the time the progress bar only gets to half, so
-        // apply a polynomial ease-out function to move faster in the beginning
-        // and then slow down as things get increasingly unlikely. quadratic felt
-        // the best in testing, but this may need adjustment in the future.
+        // Fill the bar up to the halfway mark once the minimum time has been meet
+        let bar_width = Math.min((delta / (minimum_time * 1000) * 50), 50)
 
-        const probability = Math.pow(1 - likelihood, iters);
-        const distance = (1 - Math.pow(probability, 2)) * 100;
-        progress["aria-valuenow"] = distance;
-        progress.firstElementChild.style.width = `${distance}%`;
+        if (bar_width === 50) {
+          if (baseIters === 0)
+          {
+            baseIters = iters;
+          }
 
-        if (probability < 0.1 && !showingApology) {
-          status.append(
-            document.createElement("br"),
-            document.createTextNode(
-                lang('verification_time'),
-            ),
-          );
-          showingApology = true;
+          iters -= baseIters;
+          // the probability of still being on the page is (1 - likelihood) ^ iters.
+          // by definition, half of the time the progress bar only gets to half, so
+          // apply a polynomial ease-out function to move faster in the beginning
+          // and then slow down as things get increasingly unlikely. quadratic felt
+          // the best in testing, but this may need adjustment in the future.
+
+          const probability = Math.pow(1 - likelihood, iters);
+          const distance = (1 - Math.pow(probability, 2)) * 50;
+          // const distance = (1 - probability) * 50;
+
+          if (probability < 0.1 && !showingApology) {
+            status.append(
+                document.createElement("br"),
+                document.createTextNode(
+                    lang('verification_time'),
+                ),
+            );
+            showingApology = true;
+          }
+
+          bar_width = Math.round(bar_width + distance)
         }
+        progress["aria-valuenow"] = bar_width;
+        progress.firstElementChild.style.width = `${bar_width}%`;
       },
+        minimum_time
     );
     const t1 = Date.now();
-    console.log({ hash, nonce });
 
     title.innerHTML = lang('success');
     attempt_count += 1

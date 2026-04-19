@@ -18,23 +18,19 @@
 		},
 		"user_lang": "{{ user_lang }}"
 	}
-
-
 	</script>
 	{% if challenge %}
-		<script id="challenge" type="application/json">
+	<script id="challenge" type="application/json">
 	{
 		"challenge": "{{ challenge }}",
 		"timestamp":"{{ timestamp }}",
 		"rules": {
 			"difficulty": "{{ difficulty }}",
-			"report_as": "{{ difficulty }}",
-			"algorithm": "fast"
-		}
+			"report_as": "{{ difficulty }}"
+		},
+		"minimum_time": "{{ hash_time }}"
 	}
-
-
-		</script>
+	</script>
 	{% endif %}
 </head>
 <body id="top">

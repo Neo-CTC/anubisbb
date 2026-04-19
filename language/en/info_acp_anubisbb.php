@@ -49,6 +49,9 @@ $lang = array_merge($lang, [
 	'ACP_ANUBISBB_SETTINGS_STRICT_STRICT'  => 'Strict',
 	'ACP_ANUBISBB_SETTINGS_STRICT_LENIENT' => 'Lenient',
 
+	'ACP_ANUBISBB_SETTINGS_HASH_TIME'         => 'Minimum hash time',
+	'ACP_ANUBISBB_SETTINGS_HASH_TIME_EXPLAIN' => 'Set the minimum amount of time in seconds a visitor must send on the challenge before access is granted. Set to 0 to disable.',
+
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING'         => 'Allow hot linking',
 	'ACP_ANUBISBB_SETTINGS_HOT_LINKING_EXPLAIN' => 'Disable protections for uploaded files (attachments). This allows visitors to view these files without passing a challenge both onsite and offsite (hot linking).',
 

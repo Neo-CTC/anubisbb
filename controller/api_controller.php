@@ -114,6 +114,14 @@ class api_controller
 			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_COOKIES_DISABLED'));
 		}
 
+		$cc_cookie = $this->anubis->jwt_unpack($cc_cookie);
+
+		$ip_address = $cc_cookie['data']['ip_address'] ?? null;
+		if ($this->user->ip != $ip_address)
+		{
+			return $this->build_error_page($this->language->lang('ANUBISBB_ERROR_IP_ADDRESS'));
+		}
+
 		if ($this->anubis->pass_challenge())
 		{
 			// Tell phpBB not to delete this guest account at the next cleanup
@@ -167,7 +175,7 @@ class api_controller
 
 			$t  = time();
 			$e  = $t + 3600; // 1 hour, it shouldn't take longer than that to solve a challenge
-			$cc = $this->anubis->jwt_create(['page' => 'make'], $t, $e);
+			$cc = $this->anubis->jwt_create(['page' => 'make', 'ip_address' => $this->user->ip], $t, $e);
 			$this->user->set_cookie('anubisbb_cc', $cc, $e, false);
 
 			$this->logger->log('Challenge');

@@ -38,6 +38,7 @@ $lang = array_merge($lang, [
 
 	'ANUBISBB_ERROR_CHALLENGE_FAILED' => 'You did not pass the challenge',
 	'ANUBISBB_ERROR_COOKIES_DISABLED' => 'Cookies are disabled. Please enable cookies before trying again',
+	'ANUBISBB_ERROR_IP_ADDRESS'       => 'IP address changed during verification. Please try again.',
 
 	'ANUBISBB_FAIL_TEXT' => '<a href="%s">Try again</a> or if you believe you should not be blocked, please <a href="%s">contact the administrator</a>',
 

@@ -1,4 +1,4 @@
-import processFast from "./proof-of-work.js?hash=e622b3b1";
+import processFast from "./proof-of-work.js?hash=1e89bca7";
 
 const abort_controller = new AbortController();
 globalThis.anubis_abort = abort_controller
@@ -49,7 +49,7 @@ const imageURL = (mood, cacheBuster, staticPrefix) =>
   const fetch_lang = async (lang) => {
     try {
       // Fetch the file or timeout after 5 seconds
-      const f = await fetch(`${staticPrefix}language/${lang}/strings.json?hash=b969197f`, { signal: AbortSignal.timeout(5000)});
+      const f = await fetch(`${staticPrefix}language/${lang}/strings.json?hash=566dff8e`, { signal: AbortSignal.timeout(5000)});
       if (f.status !== 200 || f.headers.get('Content-Type') !== 'application/json'){
         console.warn('Bad response for language file', f)
         return false;

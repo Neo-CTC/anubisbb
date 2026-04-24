@@ -172,7 +172,6 @@ class acp_controller
 			'CONFIG_LOG_PATH'       => $this->config['anubisbb_log_path'],
 			'CONFIG_LOG_ROTATE_MAX' => $this->config['anubisbb_log_rotate_max'],
 		]);
-		// TODO: exclude paths
 	}
 
 	/**

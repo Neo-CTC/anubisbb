@@ -148,7 +148,7 @@ class api_controller
 		// Paths for static files and the verification api
 		$this->template->assign_vars([
 			'version'      => $this->anubis->version,
-			'user_lang'    => $this->user->data['user_lang'],
+			'user_lang'    => $this->user->lang_name,
 		]);
 
 		// Fetch the challenge hash

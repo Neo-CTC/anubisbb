@@ -1,10 +1,10 @@
 {
     "name": "neodev/anubisbb",
     "type": "phpbb-extension",
-    "description": "Port of Anubis WAF for phpBB",
+    "description": "Port of Anubis web app firewall for phpBB",
     "homepage": "",
-    "version": "0.5.1",
-    "time": "2026-04-23",
+    "version": "0.5.2",
+    "time": "2026-04-29",
     "license": "GPL-2.0-only",
     "authors": [
         {

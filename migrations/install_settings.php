@@ -16,7 +16,7 @@ class install_settings extends migration
 {
 	public function effectively_installed()
 	{
-		return isset($this->config['anubisbb_ctime']);
+		return isset($this->config['anubisbb_ctime']) && in_array('anubisbb', $this->db_tools->sql_list_columns(SESSIONS_TABLE));
 	}
 
 	public static function depends_on()
@@ -37,6 +37,9 @@ class install_settings extends migration
 	public function revert_data()
 	{
 		return [
+			['config.remove', ['anubisbb_difficulty']],
+			['config.remove', ['anubisbb_sk']],
+			['config.remove', ['anubisbb_ctime']], // One week
 			['config.update', ['session_gc', 3600]], // Revert to 1 hour default
 		];
 	}

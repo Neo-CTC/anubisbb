@@ -42,6 +42,7 @@ services:
             - '@controller.helper'
             - '@cache'
             - '@config_text'
+            - '@router'
         tags:
             - { name: event.listener }
 

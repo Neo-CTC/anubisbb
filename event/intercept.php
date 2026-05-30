@@ -17,8 +17,10 @@ use phpbb\config\config;
 use phpbb\config\db_text as config_text;
 use phpbb\controller\helper as controller_helper;
 use phpbb\request\request;
+use phpbb\routing\router;
 use phpbb\user;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class intercept implements EventSubscriberInterface
 {
@@ -35,19 +37,21 @@ class intercept implements EventSubscriberInterface
 	private $config;
 	private $cache;
 	private $config_text;
+	private $route;
 
 	private $anubis;
 	private $logger;
 
 	private $intercept_request;
 
-	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache, config_text $config_text)
+	public function __construct(user $user, request $request, config $config, controller_helper $helper, cache $cache, config_text $config_text, router $router)
 	{
 		$this->user        = $user;
 		$this->request     = $request;
 		$this->config      = $config;
 		$this->cache       = $cache;
 		$this->config_text = $config_text;
+		$this->route       = $router;
 
 		$this->anubis = new anubis_core($this->config, $helper, $this->request, $this->user);
 		$this->logger = new logger($this->config, $this->user);
@@ -190,8 +194,18 @@ class intercept implements EventSubscriberInterface
 		$path_normalized = $this->user->page['page_name'];
 
 		// Strip off app from routes
-		$path_normalized = preg_replace('#^app\.php#', '', $path_normalized);
+		if (strpos($path_normalized,'app.php') === 0)
+		{
+			$path_normalized = preg_replace('#^app\.php#', '', $path_normalized);
+			$in_app = true;
+		}
+		else
+		{
+			$in_app = false;
+		}
 
+
+		// Variable used by many pages, we'll grab it just in case.
 		$mode = $this->request->variable('mode', '');
 
 		switch ($path_normalized)
@@ -240,6 +254,21 @@ class intercept implements EventSubscriberInterface
 			break;
 
 			default:
+				// Let's make sure the route even exists
+				if ($in_app)
+				{
+					try
+					{
+						$this->route->match($path_normalized);
+					}
+					catch (ResourceNotFoundException $e)
+					{
+						// File/Route/Resource not found, send 404 error
+						$this->not_found();
+					}
+				}
+
+
 				// Allow RSS feeds and myself
 				if (preg_match('~^/(?:feed(?:/|$)|anubis/(?:api|pages)/\w+$)~', $path_normalized))
 				{
@@ -322,5 +351,24 @@ END;
 		// Exit functions
 		garbage_collection();
 		exit_handler();
+	}
+
+	private function not_found(){
+		send_status_line(404, 'Not Found');
+		echo <<< END
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>File not found</title>
+</head>
+<body>
+	Error 404: File not found
+</body>
+</html>
+END;
+		// Exit functions
+		garbage_collection();
+		exit_handler();
+
 	}
 }
